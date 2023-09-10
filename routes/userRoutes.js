@@ -66,4 +66,15 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   }
 });
 
+router.put('/updateNFTs/:id', authMiddleware, async (req, res) => {
+  try {
+      const { selectedNFTs } = req.body;
+      const user = await User.findByIdAndUpdate(req.params.id, { selectedNFTs }, { new: true });
+      if (!user) return res.status(404).send();
+      res.status(200).send(user);
+  } catch (error) {
+      res.status(400).send(error);
+  }
+});
+
 module.exports = router;
