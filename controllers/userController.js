@@ -72,3 +72,28 @@ exports.oauthLogin = async (req, res) => {
     res.status(500).json({ error: "Erreur lors de la connexion via OAuth" });
   }
 };
+
+// Vérifier la validité du token JWT
+exports.verifyToken = (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1]; // Récupérer le token dans les headers
+  if (!token) {
+    return res.status(401).json({ success: false, message: "Token manquant" });
+  }
+
+  try {
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "defaultSecret"
+    );
+    User.findById(decoded._id, (err, user) => {
+      if (err || !user) {
+        return res
+          .status(401)
+          .json({ success: false, message: "Token invalide" });
+      }
+      res.status(200).json({ success: true, user });
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: "Token invalide" });
+  }
+};
