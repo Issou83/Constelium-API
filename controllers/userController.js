@@ -38,7 +38,8 @@ exports.login = async (req, res) => {
 
     const token = jwt.sign(
       { _id: user._id },
-      process.env.JWT_SECRET || "defaultSecret"
+      process.env.JWT_SECRET || "defaultSecret",
+      { expiresIn: "1h" }
     );
     res.status(200).json({ success: true, token });
   } catch (error) {
@@ -48,24 +49,23 @@ exports.login = async (req, res) => {
 
 // Connexion ou inscription via OAuth
 exports.oauthLogin = async (req, res) => {
-  const { email, name } = req.body; // Données récupérées via OAuth
+  const { email, name } = req.body;
 
   try {
     let user = await User.findOne({ email });
 
     if (!user) {
-      // Si l'utilisateur n'existe pas, on le crée
       user = new User({
-        username: name, // Utiliser le nom d'utilisateur récupéré via OAuth
+        username: name,
         email,
       });
       await user.save();
     }
 
-    // Génération d'un token JWT pour l'utilisateur OAuth
     const token = jwt.sign(
       { _id: user._id },
-      process.env.JWT_SECRET || "defaultSecret"
+      process.env.JWT_SECRET || "defaultSecret",
+      { expiresIn: "1h" }
     );
     res.status(200).json({ success: true, token });
   } catch (error) {
@@ -75,7 +75,7 @@ exports.oauthLogin = async (req, res) => {
 
 // Vérifier la validité du token JWT
 exports.verifyToken = (req, res) => {
-  const token = req.headers.authorization?.split(" ")[1]; // Récupérer le token dans les headers
+  const token = req.headers.authorization?.split(" ")[1];
   if (!token) {
     return res.status(401).json({ success: false, message: "Token manquant" });
   }
