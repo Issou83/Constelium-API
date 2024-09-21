@@ -12,7 +12,7 @@ connectDB();
 
 // Configuration du middleware CORS pour autoriser les requêtes depuis le front-end local
 const corsOptions = {
-  origin: "http://localhost:5173", // Autoriser les requêtes depuis cette origine
+  origin: "*", // Autoriser les requêtes depuis cette origine
   optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
