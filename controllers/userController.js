@@ -75,9 +75,12 @@ exports.oauthLogin = async (req, res) => {
 
 // Vérifier la validité du token JWT
 exports.verifyToken = (req, res) => {
-  const token = req.headers.authorization?.split(" ")[1];
+  const token = req.headers.authorization?.split(" ")[1]; // Récupérer le token après 'Bearer'
+
   if (!token) {
-    return res.status(401).json({ success: false, message: "Token manquant" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Token manquant ou mal formé" }); // Améliorer le message d'erreur
   }
 
   try {
@@ -89,11 +92,14 @@ exports.verifyToken = (req, res) => {
       if (err || !user) {
         return res
           .status(401)
-          .json({ success: false, message: "Token invalide" });
+          .json({
+            success: false,
+            message: "Token invalide ou utilisateur non trouvé",
+          });
       }
       res.status(200).json({ success: true, user });
     });
   } catch (error) {
-    res.status(400).json({ success: false, message: "Token invalide" });
+    return res.status(400).json({ success: false, message: "Token invalide" });
   }
 };
