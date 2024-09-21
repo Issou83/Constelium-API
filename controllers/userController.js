@@ -80,7 +80,7 @@ exports.verifyToken = (req, res) => {
   if (!token) {
     return res
       .status(400)
-      .json({ success: false, message: "Token manquant ou mal formé" }); // Améliorer le message d'erreur
+      .json({ success: false, message: "Token manquant ou mal formé" });
   }
 
   try {
@@ -100,6 +100,12 @@ exports.verifyToken = (req, res) => {
       res.status(200).json({ success: true, user });
     });
   } catch (error) {
-    return res.status(400).json({ success: false, message: "Token invalide" });
+    return res
+      .status(400)
+      .json({
+        success: false,
+        message: "Token invalide",
+        error: error.message,
+      });
   }
 };
