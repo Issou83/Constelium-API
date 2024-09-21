@@ -1,9 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
-const authMiddleware = require("../middlewares/authMiddleware");
-const bcrypt = require("bcrypt");
 const userController = require("../controllers/userController");
+const authMiddleware = require("../middlewares/authMiddleware");
 
 // CREATE: Ajouter un nouvel utilisateur
 router.post("/create", async (req, res) => {
@@ -17,13 +16,18 @@ router.post("/create", async (req, res) => {
 });
 
 // REGISTER: Enregistrer un nouvel utilisateur
-// Comme cette route fait la même chose que le contrôleur, il est préférable d'utiliser le contrôleur pour éviter la redondance
 router.post("/register", userController.register);
 
 // LOGIN: Se connecter en tant qu'utilisateur
 router.post("/login", userController.login);
 
-// READ: Obtenir tous les utilisateurs
+// Connexion ou inscription via OAuth
+router.post("/oauth-login", userController.oauthLogin);
+
+// Route pour vérifier le token JWT
+router.get("/verify-token", userController.verifyToken);
+
+// READ: Obtenir tous les utilisateurs (protégé par authMiddleware)
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const users = await User.find();
@@ -33,10 +37,7 @@ router.get("/", authMiddleware, async (req, res) => {
   }
 });
 
-// Route pour vérifier le token
-router.get("/verify-token", userController.verifyToken);
-
-// READ: Obtenir un utilisateur par ID
+// READ: Obtenir un utilisateur par ID (protégé par authMiddleware)
 router.get("/:id", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -47,7 +48,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// UPDATE: Mettre à jour un utilisateur par ID
+// UPDATE: Mettre à jour un utilisateur par ID (protégé par authMiddleware)
 router.put("/:id", authMiddleware, async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(req.params.id, req.body, {
@@ -61,7 +62,7 @@ router.put("/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// DELETE: Supprimer un utilisateur par ID
+// DELETE: Supprimer un utilisateur par ID (protégé par authMiddleware)
 router.delete("/:id", authMiddleware, async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
@@ -72,6 +73,7 @@ router.delete("/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// UPDATE: Mettre à jour les NFTs associés à un utilisateur (protégé par authMiddleware)
 router.put("/updateNFTs/:id", authMiddleware, async (req, res) => {
   try {
     const { selectedNFTs } = req.body;
