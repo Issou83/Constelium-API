@@ -17,6 +17,11 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
+// Route pour obtenir les logs
+app.get("/logs", (req, res) => {
+  res.json({ logs });
+});
+
 app.use(express.json());
 app.use("/user", userRoutes);
 app.use("/nfts", nftRoutes);
