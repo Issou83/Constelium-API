@@ -4,33 +4,45 @@ const User = require("../models/User");
 const authMiddleware = async (req, res, next) => {
   const authorizationHeader = req.headers.authorization;
 
-  // On vérifie que l'en-tête Authorization contient bien "Bearer" suivi du token
   if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
+    console.log(
+      "En-tête Authorization incorrect ou absent:",
+      authorizationHeader
+    );
     return res.status(400).json({ error: "Token manquant ou mal formé" });
   }
 
-  const token = authorizationHeader.split(" ")[1]; // On s'assure de récupérer le token après "Bearer"
+  const token = authorizationHeader.split(" ")[1];
 
   if (!token) {
+    console.log("Token absent après 'Bearer'");
     return res.status(401).json({ error: "Token manquant" });
   }
 
   try {
-    // Utilisation de jsonwebtoken pour vérifier et décoder le token
     const decodedToken = jwt.verify(
       token,
       process.env.JWT_SECRET || "defaultSecret"
     );
+    console.log("Token décodé avec succès:", decodedToken);
+
     const user = await User.findById(decodedToken._id);
 
     if (!user) {
+      console.log(
+        "Utilisateur non trouvé avec l'ID du token:",
+        decodedToken._id
+      );
       return res.status(401).json({ error: "Token invalide" });
     }
 
-    req.user = user; // Ajout de l'utilisateur à la requête pour les prochaines étapes
+    req.user = user;
     next();
   } catch (error) {
-    res.status(400).json({ error: "Token invalide", message: error.message }); // Ajout du message d'erreur pour plus de détails
+    console.log("Erreur lors de la vérification du token:", error.message);
+    return res
+      .status(400)
+      .json({ error: "Token invalide", message: error.message });
   }
 };
 
