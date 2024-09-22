@@ -17,14 +17,26 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
+app.use(express.json());
+
+let logs = []; // Variable pour stocker les logs
+
+// Middleware pour capturer les logs
+app.use((req, res, next) => {
+  console.log = function (message) {
+    logs.push(message); // Stocker chaque log
+    process.stdout.write(message + "\n"); // Afficher dans la console
+  };
+  next();
+});
+
+app.use("/user", userRoutes);
+app.use("/nfts", nftRoutes);
+
 // Route pour obtenir les logs
 app.get("/logs", (req, res) => {
   res.json({ logs });
 });
-
-app.use(express.json());
-app.use("/user", userRoutes);
-app.use("/nfts", nftRoutes);
 
 app.listen(port, () => {
   console.log(`Serveur en écoute sur http://localhost:${port}`);
