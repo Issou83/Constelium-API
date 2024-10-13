@@ -74,11 +74,11 @@ exports.oauthLogin = async (req, res) => {
 };
 
 // Vérifier la validité du token JWT
-exports.verifyToken = (req, res) => {
+exports.verifyToken = async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1]; // Récupérer le token après 'Bearer'
 
   if (!token) {
-    console.log("Token manquant ou mal formé:", req.headers.authorization); // Log pour vérifier l'en-tête Authorization
+    console.log("Token manquant ou mal formé:", req.headers.authorization);
     return res
       .status(400)
       .json({ success: false, message: "Token manquant ou mal formé" });
@@ -89,24 +89,23 @@ exports.verifyToken = (req, res) => {
       token,
       process.env.JWT_SECRET || "defaultSecret"
     );
-    User.findById(decoded._id, (err, user) => {
-      if (err || !user) {
-        console.log(
-          "Erreur lors de la récupération de l'utilisateur avec le token",
-          decoded._id,
-          err
-        ); // Log pour la recherche de l'utilisateur
-        return res
-          .status(401)
-          .json({
-            success: false,
-            message: "Token invalide ou utilisateur non trouvé",
-          });
-      }
-      res.status(200).json({ success: true, user });
-    });
+
+    // Utiliser async/await au lieu d'un callback pour trouver l'utilisateur
+    const user = await User.findById(decoded._id);
+
+    if (!user) {
+      console.log("Utilisateur non trouvé avec l'ID du token:", decoded._id);
+      return res
+        .status(401)
+        .json({
+          success: false,
+          message: "Token invalide ou utilisateur non trouvé",
+        });
+    }
+
+    res.status(200).json({ success: true, user });
   } catch (error) {
-    console.log("Erreur lors de la vérification du token:", error.message); // Log pour capturer les erreurs de vérification
+    console.log("Erreur lors de la vérification du token:", error.message);
     return res
       .status(400)
       .json({
