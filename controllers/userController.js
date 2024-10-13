@@ -30,20 +30,42 @@ exports.login = async (req, res) => {
 
   try {
     const user = await User.findOne({ username });
-    if (!user) return res.status(404).json({ error: "Utilisateur non trouvé" });
 
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword)
-      return res.status(400).json({ error: "Mot de passe incorrect" });
+    if (!user) {
+      return res
+        .status(401)
+        .json({
+          success: false,
+          message: "Nom d'utilisateur ou mot de passe incorrect",
+        });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res
+        .status(401)
+        .json({
+          success: false,
+          message: "Nom d'utilisateur ou mot de passe incorrect",
+        });
+    }
 
     const token = jwt.sign(
       { _id: user._id },
       process.env.JWT_SECRET || "defaultSecret",
       { expiresIn: "1h" }
     );
-    res.status(200).json({ success: true, token });
+
+    // Renvoie uniquement les données nécessaires
+    const userWithoutPassword = await User.findById(user._id).select(
+      "-password"
+    );
+
+    res.status(200).json({ success: true, token, user: userWithoutPassword });
   } catch (error) {
-    res.status(500).json({ error: "Erreur lors de la connexion" });
+    console.error("Erreur lors de la connexion:", error.message);
+    res.status(500).json({ success: false, message: "Erreur serveur" });
   }
 };
 
@@ -98,23 +120,19 @@ exports.verifyToken = async (req, res) => {
 
     if (!user) {
       console.log("Utilisateur non trouvé avec l'ID du token:", decoded._id);
-      return res
-        .status(401)
-        .json({
-          success: false,
-          message: "Token invalide ou utilisateur non trouvé",
-        });
+      return res.status(401).json({
+        success: false,
+        message: "Token invalide ou utilisateur non trouvé",
+      });
     }
 
     res.status(200).json({ success: true, user });
   } catch (error) {
     console.log("Erreur lors de la vérification du token:", error.message);
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message: "Token invalide",
-        error: error.message,
-      });
+    return res.status(400).json({
+      success: false,
+      message: "Token invalide",
+      error: error.message,
+    });
   }
 };
