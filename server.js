@@ -12,8 +12,9 @@ connectDB();
 
 // Configuration du middleware CORS pour autoriser les requêtes depuis le front-end local
 const corsOptions = {
-  origin: "*", // Autoriser les requêtes depuis cette origine
-  optionsSuccessStatus: 200,
+  origin: "*", // Autoriser les requêtes depuis cette origine spécifique
+  methods: ["GET", "POST", "PUT", "DELETE"], // Définir les méthodes HTTP autorisées
+  credentials: true, // Autoriser l'envoi de cookies, le cas échéant
 };
 app.use(cors(corsOptions));
 
@@ -23,10 +24,7 @@ let logs = []; // Variable pour stocker les logs
 
 // Middleware pour capturer les logs
 app.use((req, res, next) => {
-  console.log = function (message) {
-    logs.push(message); // Stocker chaque log
-    process.stdout.write(message + "\n"); // Afficher dans la console
-  };
+  logs.push(`Request to ${req.url} at ${new Date().toISOString()}`);
   next();
 });
 
