@@ -78,6 +78,7 @@ exports.verifyToken = (req, res) => {
   const token = req.headers.authorization?.split(" ")[1]; // Récupérer le token après 'Bearer'
 
   if (!token) {
+    console.log("Token manquant ou mal formé:", req.headers.authorization); // Log pour vérifier l'en-tête Authorization
     return res
       .status(400)
       .json({ success: false, message: "Token manquant ou mal formé" });
@@ -90,6 +91,11 @@ exports.verifyToken = (req, res) => {
     );
     User.findById(decoded._id, (err, user) => {
       if (err || !user) {
+        console.log(
+          "Erreur lors de la récupération de l'utilisateur avec le token",
+          decoded._id,
+          err
+        ); // Log pour la recherche de l'utilisateur
         return res
           .status(401)
           .json({
@@ -100,6 +106,7 @@ exports.verifyToken = (req, res) => {
       res.status(200).json({ success: true, user });
     });
   } catch (error) {
+    console.log("Erreur lors de la vérification du token:", error.message); // Log pour capturer les erreurs de vérification
     return res
       .status(400)
       .json({
