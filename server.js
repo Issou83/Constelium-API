@@ -13,7 +13,7 @@ connectDB();
 // Configuration du middleware CORS pour autoriser les requêtes depuis le front-end local
 const corsOptions = {
   origin: "*", // Autoriser les requêtes depuis cette origine spécifique
-  methods: ["GET", "POST", "PUT", "DELETE"], // Définir les méthodes HTTP autorisées
+  methods: ["GET", "POST", "PUT", "DELETE", "UPDATE"], // Définir les méthodes HTTP autorisées
   credentials: true, // Autoriser l'envoi de cookies, le cas échéant
 };
 app.use(cors(corsOptions));
