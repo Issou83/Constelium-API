@@ -23,6 +23,12 @@ app.options("*", cors(corsOptions)); // Répondre aux requêtes préflight (OPTI
 
 app.use(express.json());
 
+app.use((req, res, next) => {
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+  next();
+});
+
 let logs = []; // Variable pour stocker les logs
 
 // Middleware pour capturer les logs
