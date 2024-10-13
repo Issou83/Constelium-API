@@ -14,11 +14,6 @@ const authMiddleware = async (req, res, next) => {
 
   const token = authorizationHeader.split(" ")[1];
 
-  if (!token) {
-    console.log("Token absent après 'Bearer'");
-    return res.status(401).json({ error: "Token manquant" });
-  }
-
   try {
     const decodedToken = jwt.verify(
       token,
@@ -36,7 +31,7 @@ const authMiddleware = async (req, res, next) => {
       return res.status(401).json({ error: "Token invalide" });
     }
 
-    req.user = user;
+    req.user = user; // Ajout de l'utilisateur à la requête pour les prochaines étapes
     next();
   } catch (error) {
     console.log("Erreur lors de la vérification du token:", error.message);
