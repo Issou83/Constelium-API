@@ -73,6 +73,9 @@ exports.oauthLogin = async (req, res) => {
   }
 };
 
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
+
 // Vérifier la validité du token JWT
 exports.verifyToken = async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1]; // Récupérer le token après 'Bearer'
@@ -91,7 +94,7 @@ exports.verifyToken = async (req, res) => {
     );
 
     // Utiliser async/await au lieu d'un callback pour trouver l'utilisateur
-    const user = await User.findById(decoded._id);
+    const user = await User.findById(decoded._id).select("-password");
 
     if (!user) {
       console.log("Utilisateur non trouvé avec l'ID du token:", decoded._id);
