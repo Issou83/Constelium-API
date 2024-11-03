@@ -15,7 +15,11 @@ const corsOptions = {
   origin: "*", // Autoriser les requêtes depuis cette origine
   optionsSuccessStatus: 200,
 };
-app.use(cors(corsOptions));
+app.use((req, res, next) => {
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+  next();
+});
 
 app.use(express.json());
 
