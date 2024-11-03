@@ -30,42 +30,20 @@ exports.login = async (req, res) => {
 
   try {
     const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ error: "Utilisateur non trouvé" });
 
-    if (!user) {
-      return res
-        .status(401)
-        .json({
-          success: false,
-          message: "Nom d'utilisateur ou mot de passe incorrect",
-        });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res
-        .status(401)
-        .json({
-          success: false,
-          message: "Nom d'utilisateur ou mot de passe incorrect",
-        });
-    }
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword)
+      return res.status(400).json({ error: "Mot de passe incorrect" });
 
     const token = jwt.sign(
       { _id: user._id },
       process.env.JWT_SECRET || "defaultSecret",
       { expiresIn: "1h" }
     );
-
-    // Renvoie uniquement les données nécessaires
-    const userWithoutPassword = await User.findById(user._id).select(
-      "-password"
-    );
-
-    res.status(200).json({ success: true, token, user: userWithoutPassword });
+    res.status(200).json({ success: true, token });
   } catch (error) {
-    console.error("Erreur lors de la connexion:", error.message);
-    res.status(500).json({ success: false, message: "Erreur serveur" });
+    res.status(500).json({ error: "Erreur lors de la connexion" });
   }
 };
 
@@ -95,15 +73,11 @@ exports.oauthLogin = async (req, res) => {
   }
 };
 
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-
 // Vérifier la validité du token JWT
-exports.verifyToken = async (req, res) => {
+exports.verifyToken = (req, res) => {
   const token = req.headers.authorization?.split(" ")[1]; // Récupérer le token après 'Bearer'
 
   if (!token) {
-    console.log("Token manquant ou mal formé:", req.headers.authorization);
     return res
       .status(400)
       .json({ success: false, message: "Token manquant ou mal formé" });
@@ -114,21 +88,16 @@ exports.verifyToken = async (req, res) => {
       token,
       process.env.JWT_SECRET || "defaultSecret"
     );
-
-    // Utiliser async/await au lieu d'un callback pour trouver l'utilisateur
-    const user = await User.findById(decoded._id).select("-password");
-
-    if (!user) {
-      console.log("Utilisateur non trouvé avec l'ID du token:", decoded._id);
-      return res.status(401).json({
-        success: false,
-        message: "Token invalide ou utilisateur non trouvé",
-      });
-    }
-
-    res.status(200).json({ success: true, user });
+    User.findById(decoded._id, (err, user) => {
+      if (err || !user) {
+        return res.status(401).json({
+          success: false,
+          message: "Token invalide ou utilisateur non trouvé",
+        });
+      }
+      res.status(200).json({ success: true, user });
+    });
   } catch (error) {
-    console.log("Erreur lors de la vérification du token:", error.message);
     return res.status(400).json({
       success: false,
       message: "Token invalide",
