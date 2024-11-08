@@ -43,7 +43,7 @@ exports.login = async (req, res) => {
     );
     res.status(200).json({ success: true, token });
   } catch (error) {
-    res.status(500).json({ error: "Erreur lors de la connexion" });
+    res.status(501).json({ error: "Erreur lors de la connexion" });
   }
 };
 
@@ -90,22 +90,18 @@ exports.verifyToken = (req, res) => {
     );
     User.findById(decoded._id, (err, user) => {
       if (err || !user) {
-        return res
-          .status(401)
-          .json({
-            success: false,
-            message: "Token invalide ou utilisateur non trouvé",
-          });
+        return res.status(401).json({
+          success: false,
+          message: "Token invalide ou utilisateur non trouvé",
+        });
       }
       res.status(200).json({ success: true, user });
     });
   } catch (error) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message: "Token invalide",
-        error: error.message,
-      });
+    return res.status(400).json({
+      success: false,
+      message: "Token invalide",
+      error: error.message,
+    });
   }
 };
