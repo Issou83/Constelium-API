@@ -12,10 +12,20 @@ connectDB();
 
 // Configuration du middleware CORS pour autoriser les requêtes depuis le front-end local
 const corsOptions = {
-  origin: "*", // Autoriser les requêtes depuis cette origine
-  optionsSuccessStatus: 200,
+  origin: ["*"], // Spécifier les origines autorisées
+  methods: ["GET", "POST", "PUT", "DELETE"], // Méthodes HTTP autorisées
+  allowedHeaders: ["Content-Type", "Authorization"], // En-têtes autorisés
+  credentials: true, // Autoriser les cookies et en-têtes sensibles
 };
 app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // Répondre aux requêtes préflight (OPTIONS)
+
+// Modification des headers de sécurité
+app.use((req, res, next) => {
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
+  next();
+});
 
 app.use(express.json());
 
