@@ -18,14 +18,14 @@ const corsOptions = {
   credentials: true, // Autoriser les cookies et en-têtes sensibles
 };
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // Répondre aux requêtes préflight (OPTIONS)
+// app.options("*", cors(corsOptions)); // Répondre aux requêtes préflight (OPTIONS)
 
 // Modification des headers de sécurité
-app.use((req, res, next) => {
-  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-  res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
-  next();
-});
+// app.use((req, res, next) => {
+//   res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+//   res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
+//   next();
+// });
 
 app.use(express.json());
 
