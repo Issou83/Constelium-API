@@ -3,16 +3,26 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 // Inscription utilisateur traditionnel
+// Inscription utilisateur traditionnel
 exports.register = async (req, res) => {
-  const { username, password } = req.body;
+  const { username, email, password } = req.body;
 
   try {
+    // Vérifier si tous les champs obligatoires sont présents
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: "Champs obligatoires manquants" });
+    }
+
+    // Hasher le mot de passe avant de l'enregistrer
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Créer un nouvel utilisateur avec le modèle défini
     const newUser = new User({
       username,
+      email,
       password: hashedPassword,
+      products: [], // Initialise le champ "products" comme un tableau vide
     });
 
     await newUser.save();
