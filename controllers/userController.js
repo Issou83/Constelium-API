@@ -1,8 +1,8 @@
+// userController.js
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-// Inscription utilisateur traditionnel
 // Inscription utilisateur traditionnel
 exports.register = async (req, res) => {
   const { username, email, password } = req.body;
@@ -11,6 +11,12 @@ exports.register = async (req, res) => {
     // Vérifier si tous les champs obligatoires sont présents
     if (!username || !email || !password) {
       return res.status(400).json({ error: "Champs obligatoires manquants" });
+    }
+
+    // Vérifier si l'email est déjà utilisé
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: "Email déjà utilisé" });
     }
 
     // Hasher le mot de passe avant de l'enregistrer
@@ -26,11 +32,20 @@ exports.register = async (req, res) => {
     });
 
     await newUser.save();
-    res.status(201).json({ message: "Utilisateur créé avec succès" });
+
+    // Créer un token sans expiration pour l'utilisateur
+    const token = jwt.sign(
+      { _id: newUser._id },
+      process.env.JWT_SECRET || "defaultSecret"
+    );
+
+    // Répondre avec le token pour éviter un nouveau login
+    res.status(201).json({ message: "Utilisateur créé avec succès", token });
   } catch (error) {
+    console.error("Erreur lors de la création de l'utilisateur:", error);
     res
       .status(500)
-      .json({ error: "Erreur lors de la création de l'utilisateur" });
+      .json({ error: "Erreur interne lors de la création de l'utilisateur" });
   }
 };
 
@@ -57,61 +72,53 @@ exports.login = async (req, res) => {
   }
 };
 
-// Connexion ou inscription via OAuth
-exports.oauthLogin = async (req, res) => {
-  const { email, name } = req.body;
+// authMiddleware.js
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-  try {
-    let user = await User.findOne({ email });
+const authMiddleware = async (req, res, next) => {
+  const authorizationHeader = req.headers.authorization;
 
-    if (!user) {
-      user = new User({
-        username: name,
-        email,
-      });
-      await user.save();
-    }
-
-    const token = jwt.sign(
-      { _id: user._id },
-      process.env.JWT_SECRET || "defaultSecret",
-      { expiresIn: "1h" }
+  if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
+    console.log(
+      "En-tête Authorization incorrect ou absent:",
+      authorizationHeader
     );
-    res.status(200).json({ success: true, token });
-  } catch (error) {
-    res.status(500).json({ error: "Erreur lors de la connexion via OAuth" });
+    return res.status(400).json({ error: "Token manquant ou mal formé" });
   }
-};
 
-// Vérifier la validité du token JWT
-exports.verifyToken = (req, res) => {
-  const token = req.headers.authorization?.split(" ")[1]; // Récupérer le token après 'Bearer'
+  const token = authorizationHeader.split(" ")[1];
 
   if (!token) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Token manquant ou mal formé" });
+    console.log("Token absent après 'Bearer'");
+    return res.status(401).json({ error: "Token manquant" });
   }
 
   try {
-    const decoded = jwt.verify(
+    const decodedToken = jwt.verify(
       token,
       process.env.JWT_SECRET || "defaultSecret"
     );
-    User.findById(decoded._id, (err, user) => {
-      if (err || !user) {
-        return res.status(401).json({
-          success: false,
-          message: "Token invalide ou utilisateur non trouvé",
-        });
-      }
-      res.status(200).json({ success: true, user });
-    });
+    console.log("Token décodé avec succès:", decodedToken);
+
+    const user = await User.findById(decodedToken._id);
+
+    if (!user) {
+      console.log(
+        "Utilisateur non trouvé avec l'ID du token:",
+        decodedToken._id
+      );
+      return res.status(401).json({ error: "Token invalide" });
+    }
+
+    req.user = user;
+    next();
   } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: "Token invalide",
-      error: error.message,
-    });
+    console.log("Erreur lors de la vérification du token:", error.message);
+    return res
+      .status(400)
+      .json({ error: "Token invalide", message: error.message });
   }
 };
+
+module.exports = authMiddleware;
