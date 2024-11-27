@@ -1,8 +1,8 @@
-// userController.js
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+// Inscription utilisateur traditionnel
 // Inscription utilisateur traditionnel
 exports.register = async (req, res) => {
   const { username, email, password } = req.body;
@@ -32,15 +32,7 @@ exports.register = async (req, res) => {
     });
 
     await newUser.save();
-
-    // Créer un token sans expiration pour l'utilisateur
-    const token = jwt.sign(
-      { _id: newUser._id },
-      process.env.JWT_SECRET || "defaultSecret"
-    );
-
-    // Répondre avec le token pour éviter un nouveau login
-    res.status(201).json({ message: "Utilisateur créé avec succès", token });
+    res.status(201).json({ message: "Utilisateur créé avec succès" });
   } catch (error) {
     console.error("Erreur lors de la création de l'utilisateur:", error);
     res
@@ -72,53 +64,61 @@ exports.login = async (req, res) => {
   }
 };
 
-// authMiddleware.js
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-
-const authMiddleware = async (req, res, next) => {
-  const authorizationHeader = req.headers.authorization;
-
-  if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
-    console.log(
-      "En-tête Authorization incorrect ou absent:",
-      authorizationHeader
-    );
-    return res.status(400).json({ error: "Token manquant ou mal formé" });
-  }
-
-  const token = authorizationHeader.split(" ")[1];
-
-  if (!token) {
-    console.log("Token absent après 'Bearer'");
-    return res.status(401).json({ error: "Token manquant" });
-  }
+// Connexion ou inscription via OAuth
+exports.oauthLogin = async (req, res) => {
+  const { email, name } = req.body;
 
   try {
-    const decodedToken = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "defaultSecret"
-    );
-    console.log("Token décodé avec succès:", decodedToken);
-
-    const user = await User.findById(decodedToken._id);
+    let user = await User.findOne({ email });
 
     if (!user) {
-      console.log(
-        "Utilisateur non trouvé avec l'ID du token:",
-        decodedToken._id
-      );
-      return res.status(401).json({ error: "Token invalide" });
+      user = new User({
+        username: name,
+        email,
+      });
+      await user.save();
     }
 
-    req.user = user;
-    next();
+    const token = jwt.sign(
+      { _id: user._id },
+      process.env.JWT_SECRET || "defaultSecret",
+      { expiresIn: "1h" }
+    );
+    res.status(200).json({ success: true, token });
   } catch (error) {
-    console.log("Erreur lors de la vérification du token:", error.message);
-    return res
-      .status(400)
-      .json({ error: "Token invalide", message: error.message });
+    res.status(500).json({ error: "Erreur lors de la connexion via OAuth" });
   }
 };
 
-module.exports = authMiddleware;
+// Vérifier la validité du token JWT
+exports.verifyToken = (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1]; // Récupérer le token après 'Bearer'
+
+  if (!token) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Token manquant ou mal formé" });
+  }
+
+  try {
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "defaultSecret"
+    );
+    User.findById(decoded._id, (err, user) => {
+      if (err || !user) {
+        return res.status(401).json({
+          success: false,
+          message: "Token invalide ou utilisateur non trouvé",
+        });
+      }
+      res.status(200).json({ success: true, user });
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: "Token invalide",
+      error: error.message,
+    });
+  }
+};
