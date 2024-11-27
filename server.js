@@ -12,7 +12,7 @@ connectDB();
 
 // Configuration du middleware CORS pour autoriser les requêtes depuis le front-end local
 const corsOptions = {
-  origin: ["*"], // Autoriser explicitement ton front-end
+  origin: ["https://constelium.netlify.app"], // Autoriser explicitement ton front-end
   methods: ["GET", "POST", "PUT", "DELETE"], // Méthodes HTTP autorisées
   allowedHeaders: ["Content-Type", "Authorization"], // En-têtes autorisés
   credentials: true, // Autoriser les cookies et en-têtes sensibles
