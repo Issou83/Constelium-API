@@ -14,7 +14,7 @@ connectDB();
 const corsOptions = {
   origin: [
     "https://constelium.netlify.app", // Autoriser explicitement le front-end en ligne
-    "http://localhost:5173", // Autoriser la version locale pour le développement
+    "http://88.136.135.165", // Ajouter l'adresse IP publique pour l'accès en ligne
   ],
   methods: ["GET", "POST", "PUT", "DELETE"], // Méthodes HTTP autorisées
   allowedHeaders: ["Content-Type", "Authorization"], // En-têtes autorisés
