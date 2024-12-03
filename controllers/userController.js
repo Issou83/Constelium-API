@@ -83,7 +83,7 @@ exports.oauthLogin = async (req, res) => {
     const token = jwt.sign(
       { _id: user._id },
       process.env.JWT_SECRET || "defaultSecret",
-      { expiresIn: "1h" }
+      { expiresIn: "7d" }
     );
     res.status(200).json({ success: true, token });
   } catch (error) {
@@ -96,6 +96,7 @@ exports.verifyToken = (req, res) => {
   const token = req.headers.authorization?.split(" ")[1]; // Récupérer le token après 'Bearer'
 
   if (!token) {
+    console.log("Token manquant ou mal formé");
     return res
       .status(400)
       .json({ success: false, message: "Token manquant ou mal formé" });
@@ -106,8 +107,16 @@ exports.verifyToken = (req, res) => {
       token,
       process.env.JWT_SECRET || "defaultSecret"
     );
+    console.log("Token décodé:", decoded);
+
     User.findById(decoded._id, (err, user) => {
       if (err || !user) {
+        console.log(
+          "Utilisateur non trouvé pour l'ID décodé:",
+          decoded._id,
+          "Erreur:",
+          err
+        );
         return res.status(401).json({
           success: false,
           message: "Token invalide ou utilisateur non trouvé",
@@ -116,6 +125,7 @@ exports.verifyToken = (req, res) => {
       res.status(200).json({ success: true, user });
     });
   } catch (error) {
+    console.log("Erreur lors de la vérification du token:", error.message);
     return res.status(400).json({
       success: false,
       message: "Token invalide",
