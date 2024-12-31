@@ -12,13 +12,14 @@ connectDB();
 
 // Configuration du middleware CORS pour autoriser les requêtes depuis le front-end local
 const corsOptions = {
-  origin: [
-    "https://constelium.netlify.app", // Front-end en ligne
-    "http://localhost:3000", // Version locale classique (pour développement)
-    "http://localhost:5173", // Serveur local lancé par Vite ou un autre outil
-    "http://192.168.1.10", // Adresse IP locale (si nécessaire)
-    "http://88.136.135.165:5173", // Adresse IP publique avec le port spécifié pour ton application en local
-  ],
+  origin: "*",
+  // [
+  //   "https://constelium.netlify.app", // Front-end en ligne
+  //   "http://localhost:3000", // Version locale classique (pour développement)
+  //   "http://localhost:5173", // Serveur local lancé par Vite ou un autre outil
+  //   "http://192.168.1.10", // Adresse IP locale (si nécessaire)
+  //   "http://88.136.135.165:5173", // Adresse IP publique avec le port spécifié pour ton application en local
+  // ]
   methods: ["GET", "POST", "PUT", "DELETE"], // Méthodes HTTP autorisées
   allowedHeaders: ["Content-Type", "Authorization"], // En-têtes autorisés
   credentials: true, // Autoriser les cookies et en-têtes sensibles
