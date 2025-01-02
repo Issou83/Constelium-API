@@ -59,6 +59,15 @@ exports.login = async (req, res) => {
       // ,
       // { expiresIn: "1h" }
     );
+
+    // Définir le cookie avec le token
+    res.cookie("authToken", token, {
+      httpOnly: true, // Empêche l'accès au cookie via JavaScript (protection XSS)
+      secure: process.env.NODE_ENV === "production", // Utilise uniquement HTTPS en production
+      sameSite: "Strict", // Protection contre CSRF
+      maxAge: 3600000, // Expire après 1 heure (en millisecondes)
+    });
+
     res.status(200).json({ success: true, token });
   } catch (error) {
     res.status(501).json({ error: "Erreur lors de la connexion" });

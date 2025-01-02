@@ -2,21 +2,11 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
 const authMiddleware = async (req, res, next) => {
-  const authorizationHeader = req.headers.authorization;
-
-  if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
-    console.log(
-      "En-tête Authorization incorrect ou absent:",
-      authorizationHeader
-    );
-    return res.status(400).json({ error: "Token manquant ou mal formé" });
-  }
-
-  const token = authorizationHeader.split(" ")[1];
+  const token = req.cookies?.authToken; // Lire le token depuis le cookie
 
   if (!token) {
-    console.log("Token absent après 'Bearer'");
-    return res.status(401).json({ error: "Token manquant" });
+    console.log("Token manquant");
+    return res.status(401).json({ error: "Accès non autorisé" });
   }
 
   try {
@@ -27,7 +17,6 @@ const authMiddleware = async (req, res, next) => {
     console.log("Token décodé avec succès:", decodedToken);
 
     const user = await User.findById(decodedToken._id);
-
     if (!user) {
       console.log(
         "Utilisateur non trouvé avec l'ID du token:",
@@ -41,7 +30,7 @@ const authMiddleware = async (req, res, next) => {
   } catch (error) {
     console.log("Erreur lors de la vérification du token:", error.message);
     return res
-      .status(400)
+      .status(401)
       .json({ error: "Token invalide", message: error.message });
   }
 };

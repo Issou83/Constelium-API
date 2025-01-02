@@ -24,6 +24,16 @@ router.post("/login", userController.login);
 // Connexion ou inscription via OAuth
 router.post("/oauth-login", userController.oauthLogin);
 
+// Deconnxion de l'utilisateur
+router.post("/logout", (req, res) => {
+  res.clearCookie("authToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "Strict",
+  });
+  res.status(200).json({ success: true, message: "Déconnexion réussie" });
+});
+
 // Route pour vérifier le token JWT
 router.get("/verify-token", userController.verifyToken);
 
