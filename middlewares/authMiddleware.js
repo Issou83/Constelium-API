@@ -1,7 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-// Middleware d'authentification
 const authMiddleware = async (req, res, next) => {
   const token = req.cookies?.authToken; // Lire le token depuis le cookie
 
@@ -36,12 +35,4 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-// Middleware pour vérifier le rôle administrateur
-const adminMiddleware = (req, res, next) => {
-  if (req.user?.role !== "admin") {
-    return res.status(403).json({ error: "Accès interdit." });
-  }
-  next();
-};
-
-module.exports = { authMiddleware, adminMiddleware };
+module.exports = authMiddleware;
