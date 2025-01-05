@@ -46,32 +46,40 @@ exports.login = async (req, res) => {
   const { username, password } = req.body;
 
   try {
+    console.log("Tentative de connexion : ", { username, password });
+
+    // Vérifiez si l'utilisateur existe
     const user = await User.findOne({ username });
-    if (!user)
-      return res.status(404).json({ error: "Erreur lors de la connexion" });
+    if (!user) {
+      console.error("Utilisateur non trouvé : ", username);
+      return res.status(404).json({ error: "Utilisateur non trouvé" });
+    }
 
+    // Comparer le mot de passe
     const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword)
-      return res.status(400).json({ error: "Erreur lors de la connexion" });
+    if (!validPassword) {
+      console.error("Mot de passe incorrect pour : ", username);
+      return res.status(400).json({ error: "Mot de passe incorrect" });
+    }
 
+    // Générer le token JWT
     const token = jwt.sign(
       { _id: user._id },
-      process.env.JWT_SECRET || "defaultSecret"
-      // ,
-      // { expiresIn: "1h" }
+      process.env.JWT_SECRET || "defaultSecret",
+      { expiresIn: "1h" }
     );
+    console.log("Token généré avec succès pour : ", username);
 
-    // Définir le cookie avec le token
     res.cookie("authToken", token, {
-      httpOnly: true, // Empêche l'accès au cookie via JavaScript (protection XSS)
-      secure: process.env.NODE_ENV === "production", // Utilise uniquement HTTPS en production
-      sameSite: "Strict", // Protection contre CSRF
-      maxAge: 3600000, // Expire après 1 heure (en millisecondes)
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
     });
 
     res.status(200).json({ success: true, token });
   } catch (error) {
-    res.status(501).json({ error: "Erreur lors de la connexion" });
+    console.error("Erreur lors de la connexion : ", error.message);
+    res.status(500).json({ error: "Erreur interne lors de la connexion" });
   }
 };
 
