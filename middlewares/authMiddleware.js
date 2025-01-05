@@ -35,12 +35,4 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-// Middleware pour vérifier le rôle administrateur
-const adminMiddleware = (req, res, next) => {
-  if (req.user.role !== "admin") {
-    return res.status(403).json({ error: "Accès interdit." });
-  }
-  next();
-};
-
-module.exports = { authMiddleware, adminMiddleware };
+module.exports = authMiddleware;
