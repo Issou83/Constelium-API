@@ -12,7 +12,7 @@ const port = 3001;
 connectDB();
 
 const corsOptions = {
-  origin: ["https://constelium.netlify.app", "http://localhost:3000"],
+  origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
