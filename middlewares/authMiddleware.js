@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
+// Middleware d'authentification
 const authMiddleware = async (req, res, next) => {
   const token = req.cookies?.authToken; // Lire le token depuis le cookie
 
