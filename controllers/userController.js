@@ -69,7 +69,21 @@ exports.login = async (req, res) => {
       maxAge: 3600000, // Expire après 1 heure (en millisecondes)
     });
 
-    res.status(200).json({ success: true, token });
+    res.status(200).json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        // Ajoutez ici toutes les autres données utilisateur que vous souhaitez inclure
+        // par exemple:
+        // products: user.products,
+        // settings: user.settings,
+        // etc.
+      },
+    });
   } catch (error) {
     res.status(501).json({ error: "Erreur lors de la connexion" });
   }
