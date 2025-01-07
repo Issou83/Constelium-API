@@ -16,6 +16,8 @@ const authMiddleware = async (req, res, next) => {
     );
     console.log("Token décodé avec succès:", decodedToken);
 
+    console.log("Token décodé :", req.cookies?.authToken);
+
     const user = await User.findById(decodedToken._id);
     if (!user) {
       console.log(
@@ -26,6 +28,7 @@ const authMiddleware = async (req, res, next) => {
     }
 
     req.user = user;
+    console.log("Utilisateur connecté avec _id :", req.user._id);
     next();
   } catch (error) {
     console.log("Erreur lors de la vérification du token:", error.message);
