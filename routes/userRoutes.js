@@ -105,6 +105,19 @@ router.post("/remove-info-or-setting", authMiddleware, async (req, res) => {
   }
 });
 
+// Récupérer les informations de l'utilisateur connecté
+router.get("/user/me", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password"); // Exclure le mot de passe
+    if (!user) {
+      return res.status(404).json({ error: "Utilisateur non trouvé" });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ error: "Erreur interne" });
+  }
+});
+
 // ADMIN: Récupérer tous les utilisateurs
 router.get("/admin/users", authMiddleware, async (req, res) => {
   if (req.user.role !== "admin") {
