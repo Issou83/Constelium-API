@@ -44,12 +44,10 @@ router.post("/add-info-or-setting", authMiddleware, async (req, res) => {
         : { $push: { userSettings: { key, value } } };
 
     await User.updateMany({}, updateField);
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Information ajoutée à tous les utilisateurs",
-      });
+    res.status(200).json({
+      success: true,
+      message: "Information ajoutée à tous les utilisateurs",
+    });
   } catch (error) {
     console.error("Erreur lors de l'ajout de l'information : ", error);
     res.status(500).json({ error: "Erreur interne" });
@@ -82,31 +80,35 @@ router.post("/update-info-or-setting", authMiddleware, async (req, res) => {
 });
 
 // Supprimer une information ou un paramètre utilisateur (ADMIN uniquement)
+// Supprimer une information ou un paramètre pour tous les utilisateurs (ADMIN uniquement)
 router.post("/remove-info-or-setting", authMiddleware, async (req, res) => {
   if (req.user.role !== "admin") {
-    return res.status(403).json({ error: "Accès interdit" });
+    return res
+      .status(403)
+      .json({ error: "Accès interdit : rôle admin requis" });
   }
 
-  const { userId, type, key } = req.body;
-  if (!userId || !key || !type) {
-    return res.status(400).json({ error: "userId, key et type sont requis" });
+  const { type, key } = req.body;
+  if (!key || !type) {
+    return res.status(400).json({ error: "key et type sont requis" });
   }
 
   try {
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ error: "Utilisateur non trouvé" });
+    // Supprimer les informations ou paramètres de tous les utilisateurs
+    const updateField =
+      type === "info"
+        ? { $pull: { userInfo: { key } } }
+        : { $pull: { userSettings: { key } } };
 
-    if (type === "info") {
-      user.userInfo = user.userInfo.filter((item) => item.key !== key);
-    } else if (type === "setting") {
-      user.userSettings = user.userSettings.filter((item) => item.key !== key);
-    } else {
-      return res.status(400).json({ error: "Type invalide" });
-    }
-
-    await user.save();
-    res.status(200).json({ success: true, user });
+    await User.updateMany({}, updateField);
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Information supprimée pour tous les utilisateurs",
+      });
   } catch (error) {
+    console.error("Erreur lors de la suppression de l'information : ", error);
     res.status(500).json({ error: "Erreur interne" });
   }
 });
