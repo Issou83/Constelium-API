@@ -101,27 +101,37 @@ router.post("/remove-info-or-setting", authMiddleware, async (req, res) => {
         : { $pull: { userSettings: { key } } };
 
     await User.updateMany({}, updateField);
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Information supprimée pour tous les utilisateurs",
-      });
+    res.status(200).json({
+      success: true,
+      message: "Information supprimée pour tous les utilisateurs",
+    });
   } catch (error) {
     console.error("Erreur lors de la suppression de l'information : ", error);
     res.status(500).json({ error: "Erreur interne" });
   }
 });
 
-// Récupérer les informations de l'utilisateur connecté
-router.get("/user/me", authMiddleware, async (req, res) => {
+// Recherche d'un utilisateur par son ID (disponible pour les admins et les utilisateurs eux-mêmes)
+router.get("/user/:id", authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password"); // Exclure le mot de passe
+    // Vérifie si l'utilisateur est admin ou s'il demande ses propres informations
+    const userIdToFetch = req.params.id;
+    if (req.user.role !== "admin" && req.user.id !== userIdToFetch) {
+      return res.status(403).json({ error: "Accès interdit" });
+    }
+
+    // Recherche de l'utilisateur par ID
+    const user = await User.findById(userIdToFetch).select("-password");
     if (!user) {
       return res.status(404).json({ error: "Utilisateur non trouvé" });
     }
+
     res.status(200).json(user);
   } catch (error) {
+    console.error(
+      "Erreur lors de la recherche de l'utilisateur :",
+      error.message
+    );
     res.status(500).json({ error: "Erreur interne" });
   }
 });
