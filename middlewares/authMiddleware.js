@@ -2,8 +2,9 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
 const authMiddleware = async (req, res, next) => {
-  const token = req.cookies?.authToken; // Lire le token depuis le cookie
-
+  const token =
+    req.cookies.authToken || req.headers.authorization?.split(" ")[1]; // Lire le token depuis le cookie
+  console.log("Token reçu :", token);
   if (!token) {
     console.log("Token manquant");
     return res.status(401).json({ error: "Accès non autorisé" });
