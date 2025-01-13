@@ -23,29 +23,35 @@ router.post("/logout", (req, res) => {
 // Route pour vérifier le token JWT
 router.get("/verify-token", userController.verifyToken);
 
-// Ajouter une information ou un paramètre utilisateur (ADMIN uniquement)
+// Ajouter une information ou un paramètre pour tous les utilisateurs (ADMIN uniquement)
 router.post("/add-info-or-setting", authMiddleware, async (req, res) => {
   if (req.user.role !== "admin") {
-    return res.status(403).json({ error: "Accès interdit" });
+    return res
+      .status(403)
+      .json({ error: "Accès interdit : rôle admin requis" });
   }
 
-  const { userId, type, key, value } = req.body;
-  if (!userId || !key || !value || !type) {
-    return res
-      .status(400)
-      .json({ error: "userId, key, value et type sont requis" });
+  const { type, key, value } = req.body;
+  if (!key || !value || !type) {
+    return res.status(400).json({ error: "key, value et type sont requis" });
   }
 
   try {
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ error: "Utilisateur non trouvé" });
+    // Mettre à jour les informations ou paramètres de tous les utilisateurs
+    const updateField =
+      type === "info"
+        ? { $push: { userInfo: { key, value } } }
+        : { $push: { userSettings: { key, value } } };
 
-    const targetArray = type === "info" ? user.userInfo : user.userSettings;
-    targetArray.push({ key, value });
-
-    await user.save();
-    res.status(200).json({ success: true, user });
+    await User.updateMany({}, updateField);
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Information ajoutée à tous les utilisateurs",
+      });
   } catch (error) {
+    console.error("Erreur lors de l'ajout de l'information : ", error);
     res.status(500).json({ error: "Erreur interne" });
   }
 });
