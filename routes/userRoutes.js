@@ -112,7 +112,7 @@ router.post("/remove-info-or-setting", authMiddleware, async (req, res) => {
 });
 
 // Recherche d'un utilisateur par son ID (disponible pour les admins et les utilisateurs eux-mêmes)
-router.get(":id", authMiddleware, async (req, res) => {
+router.get("/:id", authMiddleware, async (req, res) => {
   try {
     // Vérifie si l'utilisateur est admin ou s'il demande ses propres informations
     const userIdToFetch = req.params.id;
