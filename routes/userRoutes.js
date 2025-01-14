@@ -115,8 +115,8 @@ router.post("/remove-info-or-setting", authMiddleware, async (req, res) => {
 router.get(":id", authMiddleware, async (req, res) => {
   try {
     // Vérifie si l'utilisateur est admin ou s'il demande ses propres informations
-    const userIdToFetch = req.params.id;
-    if (req.user.role !== "admin" && req.user.id !== userIdToFetch) {
+    const userIdToFetch = req.params._id;
+    if (req.user.role !== "admin" && req.user._id !== userIdToFetch) {
       return res.status(403).json({ error: "Accès interdit" });
     }
 
