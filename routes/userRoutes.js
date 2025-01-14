@@ -115,13 +115,13 @@ router.post("/remove-info-or-setting", authMiddleware, async (req, res) => {
 router.get(":id", authMiddleware, async (req, res) => {
   try {
     // Vérifie si l'utilisateur est admin ou s'il demande ses propres informations
-    const userIdToFetch = req.params._id;
-    if (req.user.role !== "admin" && req.user._id !== userIdToFetch) {
+    const userIdToFetch = req.params.id;
+    if (req.user.role !== "admin" && req.user.id !== userIdToFetch) {
       return res.status(403).json({ error: "Accès interdit" });
     }
 
     // Recherche de l'utilisateur par ID
-    const user = await User.findById(userIdToFetch).select("-password");
+    const user = await User.findOne({ _id: userIdToFetch }).select("-password");
     if (!user) {
       return res.status(404).json({ error: "Utilisateur non trouvé" });
     }
