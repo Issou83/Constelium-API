@@ -136,7 +136,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// Mise à jour des informations utilisateur
+// Mise à jour des informations utilisateur avec conservation des données existantes
 router.post("/update", authMiddleware, async (req, res) => {
   try {
     const { userId, updates } = req.body;
@@ -146,20 +146,55 @@ router.post("/update", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "userId et updates sont requis" });
     }
 
-    // Vérifie si l'utilisateur a le droit de modifier
+    // Vérification des permissions
     if (req.user.role !== "admin" && req.user.id !== userId) {
       return res.status(403).json({ error: "Accès interdit" });
     }
 
-    // Mise à jour de l'utilisateur
-    const user = await User.findByIdAndUpdate(userId, updates, {
-      new: true,
-      runValidators: true,
-    });
-
+    // Récupérer l'utilisateur actuel
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: "Utilisateur non trouvé" });
     }
+
+    // Mise à jour des champs simples (comme username et email)
+    if (updates.username) user.username = updates.username;
+    if (updates.email) user.email = updates.email;
+
+    // Mise à jour de userSettings
+    if (updates.userSettings) {
+      updates.userSettings.forEach((newSetting) => {
+        const existingSetting = user.userSettings.find(
+          (setting) => setting.key === newSetting.key
+        );
+        if (existingSetting) {
+          // Mise à jour de la valeur existante
+          existingSetting.value = newSetting.value;
+        } else {
+          // Ajout d'une nouvelle clé
+          user.userSettings.push(newSetting);
+        }
+      });
+    }
+
+    // Mise à jour de userInfo
+    if (updates.userInfo) {
+      updates.userInfo.forEach((newInfo) => {
+        const existingInfo = user.userInfo.find(
+          (info) => info.key === newInfo.key
+        );
+        if (existingInfo) {
+          // Mise à jour de la valeur existante
+          existingInfo.value = newInfo.value;
+        } else {
+          // Ajout d'une nouvelle clé
+          user.userInfo.push(newInfo);
+        }
+      });
+    }
+
+    // Sauvegarde des modifications
+    await user.save();
 
     res.status(200).json({ success: true, user });
   } catch (error) {
