@@ -136,7 +136,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// Mise à jour des informations utilisateur avec conservation des données existantes
+// Mise à jour des informations utilisateur avec conservation des données existantes et prévention des doublons
 router.post("/update", authMiddleware, async (req, res) => {
   try {
     const { userId, updates } = req.body;
@@ -171,8 +171,12 @@ router.post("/update", authMiddleware, async (req, res) => {
           // Mise à jour de la valeur existante
           existingSetting.value = newSetting.value;
         } else {
-          // Ajout d'une nouvelle clé
-          user.userSettings.push(newSetting);
+          // Ajout uniquement si la clé n'existe pas encore
+          if (
+            !user.userSettings.some((setting) => setting.key === newSetting.key)
+          ) {
+            user.userSettings.push(newSetting);
+          }
         }
       });
     }
@@ -187,8 +191,10 @@ router.post("/update", authMiddleware, async (req, res) => {
           // Mise à jour de la valeur existante
           existingInfo.value = newInfo.value;
         } else {
-          // Ajout d'une nouvelle clé
-          user.userInfo.push(newInfo);
+          // Ajout uniquement si la clé n'existe pas encore
+          if (!user.userInfo.some((info) => info.key === newInfo.key)) {
+            user.userInfo.push(newInfo);
+          }
         }
       });
     }
