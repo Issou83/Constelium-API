@@ -136,12 +136,21 @@ router.get("/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// Route pour récupérer les informations de l'utilisateur connecté
 router.get("/me", authMiddleware, async (req, res) => {
   try {
+    // Vérifiez que req.user contient bien un ID valide
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: "Utilisateur non authentifié" });
+    }
+
+    // Récupérez l'utilisateur en base de données
     const user = await User.findById(req.user.id).select("-password");
     if (!user) {
       return res.status(404).json({ error: "Utilisateur non trouvé" });
     }
+
+    // Retournez les données utilisateur
     res.status(200).json(user);
   } catch (error) {
     console.error(
