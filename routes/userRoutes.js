@@ -136,6 +136,22 @@ router.get("/:id", authMiddleware, async (req, res) => {
   }
 });
 
+router.get("/me", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) {
+      return res.status(404).json({ error: "Utilisateur non trouvé" });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    console.error(
+      "Erreur lors de la récupération de l'utilisateur :",
+      error.message
+    );
+    res.status(500).json({ error: "Erreur interne" });
+  }
+});
+
 // Mise à jour des informations utilisateur avec conservation des données existantes et prévention des doublons
 router.post("/update", authMiddleware, async (req, res) => {
   try {
