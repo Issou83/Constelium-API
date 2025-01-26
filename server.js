@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser"); // Ajoutez ceci pour lire les coo
 const connectDB = require("./db");
 const nftRoutes = require("./routes/nftRoutes");
 const userRoutes = require("./routes/userRoutes");
+const articleRoutes = require("./routes/articleRoutes");
 require("dotenv").config();
 
 const app = express();
@@ -24,6 +25,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/user", userRoutes);
 app.use("/nfts", nftRoutes);
+app.use("/api/articles", articleRoutes);
 
 app.listen(port, () => {
   console.log(`Serveur en écoute sur http://localhost:${port}`);
