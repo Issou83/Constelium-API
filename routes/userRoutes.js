@@ -79,7 +79,6 @@ router.post("/update-info-or-setting", authMiddleware, async (req, res) => {
   }
 });
 
-// Supprimer une information ou un paramètre utilisateur (ADMIN uniquement)
 // Supprimer une information ou un paramètre pour tous les utilisateurs (ADMIN uniquement)
 router.post("/remove-info-or-setting", authMiddleware, async (req, res) => {
   if (req.user.role !== "admin") {

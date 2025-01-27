@@ -24,10 +24,6 @@ router.delete("/:id", articleController.deleteArticle);
 router.patch("/:id/status", articleController.toggleStatus);
 
 // POST – régénérer un article
-// router.post(
-//   "/:id/regenerate",
-//   authMiddleware,
-//   articleController.regenerateArticle
-// );
+router.post("/:id/regenerate", articleController.regenerateArticle);
 
 module.exports = router;
