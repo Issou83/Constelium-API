@@ -5,6 +5,7 @@ const connectDB = require("./db");
 const nftRoutes = require("./routes/nftRoutes");
 const userRoutes = require("./routes/userRoutes");
 const articleRoutes = require("./routes/articleRoutes");
+const cron = require("node-cron");
 require("dotenv").config();
 
 const app = express();
@@ -18,6 +19,18 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };
+
+// Planification quotidienne à 08h00 (modifier si besoin)
+cron.schedule("0 8 * * *", async () => {
+  console.log("Début de la génération automatique d’articles (08h00) ...");
+  try {
+    await generateScheduledArticles();
+    console.log("Fin de la génération");
+  } catch (error) {
+    console.error("Erreur lors de la génération automatique:", error);
+  }
+});
+
 app.use(cors(corsOptions));
 app.use(cookieParser()); // Middleware pour les cookies
 app.use(express.json());
