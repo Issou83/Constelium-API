@@ -6,28 +6,28 @@ const articleController = require("../controllers/articleController");
 const authMiddleware = require("../middlewares/authMiddleware");
 
 // CREATE
-router.post("/", authMiddleware, articleController.createArticle);
+router.post("/", articleController.createArticle);
 
 // READ
-router.get("/", authMiddleware, articleController.getAllArticles);
+router.get("/", articleController.getAllArticles);
 
 // READ by ID
-router.get("/:id", authMiddleware, articleController.getArticleById);
+router.get("/:id", articleController.getArticleById);
 
 // UPDATE
-router.put("/:id", authMiddleware, articleController.updateArticle);
+router.put("/:id", articleController.updateArticle);
 
 // DELETE
-router.delete("/:id", authMiddleware, articleController.deleteArticle);
+router.delete("/:id", articleController.deleteArticle);
 
 // PATCH – mise à jour du statut
-router.patch("/:id/status", authMiddleware, articleController.toggleStatus);
+router.patch("/:id/status", articleController.toggleStatus);
 
 // POST – régénérer un article
-// router.post(
-//   "/:id/regenerate",
-//   authMiddleware,
-//   articleController.regenerateArticle
-// );
+router.post(
+  "/:id/regenerate",
+  authMiddleware,
+  articleController.regenerateArticle
+);
 
 module.exports = router;
