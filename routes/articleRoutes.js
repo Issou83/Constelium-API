@@ -23,7 +23,7 @@ router.put("/:id", articleController.updateArticle);
 router.delete("/:id", articleController.deleteArticle);
 
 // PATCH – changer le statut (standby <-> validate)
-router.patch("/:id/status", articleController.toggleStatus);
+router.post("/:id/status", articleController.toggleStatus);
 
 // POST – régénérer un article
 router.post("/:id/regenerate", articleController.regenerateArticle);
