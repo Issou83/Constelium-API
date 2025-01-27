@@ -6,7 +6,14 @@ const feedUrls = [
   "https://coinjournal.net/fr/actualites/feed/",
   "https://fr.cointelegraph.com/rss",
   "https://coinacademy.fr/tag/analyse-crypto/feed/",
-  // ... etc. (tu complètes avec tous les flux de la liste)
+  "https://coinacademy.fr/tag/analyse-nft/feed/",
+  "https://coinacademy.fr/actu/gn",
+  "https://flipboard.com/topic/fr-nft.rss",
+  "https://flux.saynete.com/encart_rss_informatique_emonnaie_fr.xml",
+  "https://news.google.com/rss/search?tbm=nws&q=when:24h+nft&oq=nft&scoring=n&hl=fr&gl=FR&ceid=FR:fr",
+  "https://news.google.com/rss/search?tbm=nws&q=cryptographie&oq=cryptographie&scoring=n&hl=fr&gl=FR&ceid=FR:fr",
+  "https://news.google.com/rss/search?tbm=nws&q=blockchain&oq=blockchain&scoring=n&hl=fr&gl=FR&ceid=FR:fr",
+  "https://flipboard.com/topic/fr-cryptographie.rss",
 ];
 
 async function fetchRSSFeedItems(url) {

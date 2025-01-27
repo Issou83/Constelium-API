@@ -10,6 +10,8 @@ router.post("/", authMiddleware, articleController.createArticle);
 
 // READ
 router.get("/", authMiddleware, articleController.getAllArticles);
+
+// READ by ID
 router.get("/:id", authMiddleware, articleController.getArticleById);
 
 // UPDATE
@@ -20,5 +22,12 @@ router.delete("/:id", authMiddleware, articleController.deleteArticle);
 
 // PATCH – mise à jour du statut
 router.patch("/:id/status", authMiddleware, articleController.toggleStatus);
+
+// POST – régénérer un article
+router.post(
+  "/:id/regenerate",
+  authMiddleware,
+  articleController.regenerateArticle
+);
 
 module.exports = router;

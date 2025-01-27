@@ -31,7 +31,7 @@ async function generateWeb3Image(title) {
   } catch (error) {
     console.error("Erreur génération image (Hugging Face):", error);
     // En cas d'erreur, retourner une image par défaut ?
-    return "";
+    return "../assets/Capture d'écran 2025-01-27 094818.png";
   }
 }
 

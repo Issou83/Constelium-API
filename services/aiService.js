@@ -23,7 +23,7 @@ async function generateArticleFromSources(sources) {
        Si oui, écris "DOUTE".
     - Sinon, rédige un article de 300 mots minimum, en bon français,
       avec un TITRE accrocheur (sur une ligne) et le TEXTE (sur les lignes suivantes).
-    
+    -L'article doit être informatif et original, sans plagiat.
     Extraits :
     ${combinedText}
   `;
