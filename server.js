@@ -6,6 +6,8 @@ const nftRoutes = require("./routes/nftRoutes");
 const userRoutes = require("./routes/userRoutes");
 const articleRoutes = require("./routes/articleRoutes");
 const cron = require("node-cron");
+const { generateScheduledArticles } = require("./services/articleGenerator");
+
 require("dotenv").config();
 
 const app = express();
