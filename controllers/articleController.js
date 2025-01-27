@@ -16,13 +16,13 @@ exports.generateNow = async (req, res) => {
     // On appelle la fonction qui crée 1 article depuis les flux RSS
     const newArticle = await createOneArticleFromRSS();
 
-    // Si null => erreur (pas assez de sources, doute IA, etc.)
     if (!newArticle) {
+      // Si la génération a échoué (pas assez de sources, IA douteuse, etc.)
       return res
         .status(400)
         .json({
           error:
-            "Impossible de générer un nouvel article (pas assez de sources ou doute IA).",
+            "Impossible de générer un nouvel article. Vérifiez qu’il y a assez de sources.",
         });
     }
 
