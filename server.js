@@ -41,17 +41,6 @@ cron.schedule("0 8 * * *", async () => {
   }
 });
 
-// Planification – Tous les jours à 08h00
-cron.schedule("0 8 * * *", async () => {
-  console.log("Début de la génération automatique d’articles (08h00) ...");
-  try {
-    await generateScheduledArticles();
-    console.log("Fin de la génération");
-  } catch (error) {
-    console.error("Erreur lors de la génération automatique:", error);
-  }
-});
-
 app.listen(port, () => {
   console.log(`Serveur en écoute sur http://localhost:${port}`);
 });
