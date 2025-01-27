@@ -1,4 +1,5 @@
 // controllers/articleController.js
+const { createOneArticleFromRSS } = require("../services/articleGenerator");
 
 const Article = require("../models/Article");
 
@@ -6,6 +7,35 @@ const Article = require("../models/Article");
 const { fetchAllFeeds } = require("../services/rssService");
 const { generateArticleFromSources } = require("../services/aiService");
 const { generateWeb3Image } = require("../services/aiImageService");
+
+/**
+ * GENERATE – Générer un nouvel article immédiatement (hors cron)
+ */
+exports.generateNow = async (req, res) => {
+  try {
+    // On appelle la fonction qui crée 1 article depuis les flux RSS
+    const newArticle = await createOneArticleFromRSS();
+
+    // Si null => erreur (pas assez de sources, doute IA, etc.)
+    if (!newArticle) {
+      return res
+        .status(400)
+        .json({
+          error:
+            "Impossible de générer un nouvel article (pas assez de sources ou doute IA).",
+        });
+    }
+
+    // Sinon, on renvoie l’article créé
+    return res.status(201).json({
+      message: "Article créé avec succès",
+      article: newArticle,
+    });
+  } catch (error) {
+    console.error("Erreur generateNow:", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
 
 /**
  * CREATE – Créer un nouvel article
