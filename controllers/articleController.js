@@ -155,11 +155,9 @@ exports.regenerateArticle = async (req, res) => {
     );
 
     if (isDoubtful || !title || !text) {
-      return res
-        .status(400)
-        .json({
-          error: "Impossible de régénérer (information douteuse ou erreur IA)",
-        });
+      return res.status(400).json({
+        error: "Impossible de régénérer (information douteuse ou erreur IA)",
+      });
     }
 
     // 4) Génération de l’image

@@ -7,6 +7,9 @@ const articleController = require("../controllers/articleController");
 // CREATE
 router.post("/", articleController.createArticle);
 
+// NOUVELLE ROUTE : générer un article immédiatement
+router.post("/generate-now", articleController.generateNow);
+
 // READ – tous les articles
 router.get("/", articleController.getAllArticles);
 
