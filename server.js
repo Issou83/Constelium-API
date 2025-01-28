@@ -11,8 +11,8 @@ const { generateScheduledArticles } = require("./services/articleGenerator");
 require("dotenv").config();
 
 const app = express();
-const port = 3001;
-
+// 🔽 Port ajusté pour Render ou autre hébergeur, sinon fallback sur 3001
+const port = process.env.PORT || 3001;
 connectDB();
 
 const corsOptions = {
