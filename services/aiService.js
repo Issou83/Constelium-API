@@ -1,56 +1,47 @@
-// services/aiService.js
 const axios = require("axios");
 
 async function generateArticleFromSources(sources) {
-  const combinedText = sources
-    .map((s, i) => {
-      return `Source ${i + 1}:\nTitre: ${s.title}\nExtrait: ${
-        s.contentSnippet
-      }\n`;
-    })
-    .join("\n");
+  // Création du prompt basé sur les articles récupérés
+  const combinedText = sources.map((s, i) => {
+    return `Source ${i + 1}:\nTitre: ${s.title}\nExtrait: ${s.contentSnippet}\n`;
+  }).join("\n");
 
   const prompt = `
     Tu es un rédacteur spécialisé en Web3.
     Je te fournis plusieurs extraits d'articles sur un thème similaire.
     - Vérifie s'il existe des infos douteuses ou contradictoires.
-       Si oui, écris "DOUTE".
-    - Sinon, rédige un article de 300 mots minimum, en bon français,
-      avec un TITRE accrocheur (sur une ligne) et le TEXTE (sur les lignes suivantes).
-    -L'article doit être informatif et original, sans plagiat.
+    - Si oui, écris "DOUTE".
+    - Sinon, rédige un article bien structuré de 300 mots minimum en bon français,
+      avec un TITRE accrocheur et le TEXTE.
+      
     Extraits :
     ${combinedText}
   `;
 
   try {
     const response = await axios.post(
-      "https://api.deepseek.com/v1/chat/completions",
+      "https://api-inference.huggingface.co/models/meta-llama/Llama-2-7b-chat-hf",
       {
-        model: "deepseek-chat",
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 1200,
+        inputs: prompt,
+        parameters: {
+          max_length: 1200,
+          temperature: 0.7
+        }
       },
       {
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-        },
+          Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+          "Content-Type": "application/json"
+        }
       }
     );
 
-    const rawOutput = response.data.choices[0]?.message?.content?.trim() || "";
+    const rawOutput = response.data[0].generated_text.trim();
 
     if (rawOutput.includes("DOUTE")) {
       return { title: "", text: "", isDoubtful: true };
     }
 
-    // Parsing reste identique
     const lines = rawOutput.split("\n").map((l) => l.trim());
     let title = "";
     let text = "";
@@ -75,7 +66,7 @@ async function generateArticleFromSources(sources) {
 
     return { title, text, isDoubtful: false };
   } catch (error) {
-    console.error("Erreur Deepseek:", error.response?.data || error.message);
+    console.error("Erreur IA (Hugging Face Llama 2) :", error);
     return { title: "", text: "", isDoubtful: true };
   }
 }
