@@ -1,13 +1,7 @@
 // services/aiService.js
-const { Configuration, OpenAIApi } = require("openai");
-
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY, // Assure-toi de définir la variable d'env
-});
-const openai = new OpenAIApi(configuration);
+const axios = require("axios");
 
 async function generateArticleFromSources(sources) {
-  // Simplification : on combine le titre + snippet de chaque source
   const combinedText = sources
     .map((s, i) => {
       return `Source ${i + 1}:\nTitre: ${s.title}\nExtrait: ${
@@ -29,21 +23,34 @@ async function generateArticleFromSources(sources) {
   `;
 
   try {
-    const response = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt,
-      max_tokens: 1200,
-      temperature: 0.7,
-    });
+    const response = await axios.post(
+      "https://api.deepseek.com/v1/chat/completions",
+      {
+        model: "deepseek-chat",
+        messages: [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        temperature: 0.7,
+        max_tokens: 1200,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+        },
+      }
+    );
 
-    const rawOutput = response.data.choices[0].text?.trim() || "";
+    const rawOutput = response.data.choices[0]?.message?.content?.trim() || "";
 
     if (rawOutput.includes("DOUTE")) {
       return { title: "", text: "", isDoubtful: true };
     }
 
-    // Essai de parsing
-    // On suppose qu'on a "TITRE: X\nTEXTE: Y..."
+    // Parsing reste identique
     const lines = rawOutput.split("\n").map((l) => l.trim());
     let title = "";
     let text = "";
@@ -61,16 +68,14 @@ async function generateArticleFromSources(sources) {
       }
     }
 
-    // Si le format n'a pas été respecté, on met tout dans text
     if (!title && !text) {
-      // fallback
       title = "Article Web3";
       text = rawOutput;
     }
 
     return { title, text, isDoubtful: false };
   } catch (error) {
-    console.error("Erreur IA:", error);
+    console.error("Erreur Deepseek:", error.response?.data || error.message);
     return { title: "", text: "", isDoubtful: true };
   }
 }
