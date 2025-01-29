@@ -2,16 +2,20 @@ const axios = require("axios");
 
 async function generateArticleFromSources(sources) {
   // Création du prompt basé sur les articles récupérés
-  const combinedText = sources.map((s, i) => {
-    return `Source ${i + 1}:\nTitre: ${s.title}\nExtrait: ${s.contentSnippet}\n`;
-  }).join("\n");
+  const combinedText = sources
+    .map((s, i) => {
+      return `Source ${i + 1}:\nTitre: ${s.title}\nExtrait: ${
+        s.contentSnippet
+      }\n`;
+    })
+    .join("\n");
 
   const prompt = `
     Tu es un rédacteur spécialisé en Web3.
     Je te fournis plusieurs extraits d'articles sur un thème similaire.
     - Vérifie s'il existe des infos douteuses ou contradictoires.
-    - Si oui, écris "DOUTE".
-    - Sinon, rédige un article bien structuré de 300 mots minimum en bon français,
+
+    - Rédige un article bien structuré de 300 mots minimum en bon français,
       avec un TITRE accrocheur et le TEXTE.
       
     Extraits :
@@ -25,14 +29,14 @@ async function generateArticleFromSources(sources) {
         inputs: prompt,
         parameters: {
           max_length: 1200,
-          temperature: 0.7
-        }
+          temperature: 0.7,
+        },
       },
       {
         headers: {
           Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
-          "Content-Type": "application/json"
-        }
+          "Content-Type": "application/json",
+        },
       }
     );
 
