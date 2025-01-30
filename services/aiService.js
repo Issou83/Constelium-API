@@ -1,7 +1,14 @@
-const axios = require("axios");
+// services/aiService.js
+const { Configuration, OpenAIApi } = require("openai");
+
+// On crée notre config OpenAI avec la clé stockée en variable d'env
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
 
 async function generateArticleFromSources(sources) {
-  // Création du prompt basé sur les articles récupérés
+  // On assemble le texte de chaque source
   const combinedText = sources
     .map((s, i) => {
       return `Source ${i + 1}:\nTitre: ${s.title}\nExtrait: ${
@@ -10,42 +17,34 @@ async function generateArticleFromSources(sources) {
     })
     .join("\n");
 
+  // Prompt
   const prompt = `
     Tu es un rédacteur spécialisé en Web3.
     Je te fournis plusieurs extraits d'articles sur un thème similaire.
     - Vérifie s'il existe des infos douteuses ou contradictoires.
-
-    - Rédige un article bien structuré de 300 mots minimum en bon français,
-      avec un TITRE accrocheur et le TEXTE.
-      
+      Si oui, écris "DOUTE".
+    - Sinon, rédige un article d'environ 300 mots en bon français,
+      avec un TITRE accrocheur (sur une ligne) et le TEXTE (sur les lignes suivantes).
+    
     Extraits :
     ${combinedText}
   `;
 
   try {
-    const response = await axios.post(
-      "https://api-inference.huggingface.co/models/meta-llama/Llama-2-7b-chat-hf",
-      {
-        inputs: prompt,
-        parameters: {
-          max_length: 1200,
-          temperature: 0.7,
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await openai.createCompletion({
+      model: "text-davinci-003", // ou "gpt-3.5-turbo" selon ton usage
+      prompt,
+      max_tokens: 1200,
+      temperature: 0.7,
+    });
 
-    const rawOutput = response.data[0].generated_text.trim();
+    const rawOutput = response.data.choices[0].text?.trim() || "";
 
     if (rawOutput.includes("DOUTE")) {
       return { title: "", text: "", isDoubtful: true };
     }
 
+    // Essai de parser "TITRE: ...\nTEXTE: ..."
     const lines = rawOutput.split("\n").map((l) => l.trim());
     let title = "";
     let text = "";
@@ -64,13 +63,14 @@ async function generateArticleFromSources(sources) {
     }
 
     if (!title && !text) {
+      // fallback si l'IA n'a pas respecté le format
       title = "Article Web3";
       text = rawOutput;
     }
 
     return { title, text, isDoubtful: false };
   } catch (error) {
-    console.error("Erreur IA (Hugging Face Llama 2) :", error);
+    console.error("Erreur IA (OpenAI):", error);
     return { title: "", text: "", isDoubtful: true };
   }
 }
