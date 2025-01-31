@@ -12,27 +12,25 @@ const { generateWeb3Image } = require("../services/aiImageService");
  * GENERATE – Générer un nouvel article immédiatement (hors cron)
  */
 exports.generateNow = async (req, res) => {
-  console.log("Requête reçue pour générer un nouvel article");
   try {
-    console.log("Début de la génération d’un article...");
-
+    // On appelle la fonction qui crée 1 article depuis les flux RSS
     const newArticle = await createOneArticleFromRSS();
 
     if (!newArticle) {
+      // Si la génération a échoué (pas assez de sources, IA douteuse, etc.)
       return res.status(400).json({
         error:
-          "Impossible de générer un nouvel article (pas assez de sources ou doute IA).",
+          "Impossible de générer un nouvel article. Vérifiez qu’il y a assez de sources.",
       });
     }
 
-    console.log("Article généré avec succès :", newArticle._id);
-
+    // Sinon, on renvoie l’article créé
     return res.status(201).json({
       message: "Article créé avec succès",
       article: newArticle,
     });
   } catch (error) {
-    console.error("Erreur dans generateNow:", error);
+    console.error("Erreur generateNow:", error);
     return res.status(500).json({ error: error.message });
   }
 };
