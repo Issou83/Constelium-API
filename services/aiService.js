@@ -1,6 +1,10 @@
 // services/aiService.js
-const OpenAI = require("openai");
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const { OpenAI } = require("openai");
+
+// Initialisation correcte du client OpenAI
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY, // Assurez-vous que la clé est bien définie dans Render
+});
 
 async function generateArticleFromSources(sources) {
   // On assemble le texte de chaque source
