@@ -21,9 +21,7 @@ async function generateArticleFromSources(sources) {
   const prompt = `
     Tu es un rédacteur spécialisé en Web3.
     Je te fournis plusieurs extraits d'articles sur un thème similaire.
-    - Vérifie s'il existe des infos douteuses ou contradictoires.
-      Si oui, écris "DOUTE".
-    - Sinon, rédige un article d'environ 300 mots en bon français,
+    Tu dois rédiger un article d'environ 300 mots en bon français,
       avec un TITRE accrocheur (sur une ligne) et le TEXTE (sur les lignes suivantes).
     
     Extraits :
