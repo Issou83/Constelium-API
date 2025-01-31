@@ -11,28 +11,49 @@ const { generateWeb3Image } = require("../services/aiImageService");
 /**
  * GENERATE – Générer un nouvel article immédiatement (hors cron)
  */
+const Article = require("../models/Article");
+const { generateArticleFromSources } = require("../services/aiService");
+const { fetchAllFeeds } = require("../services/rssService");
+
 exports.generateNow = async (req, res) => {
-  console.log("Requête reçue pour générer un nouvel article");
   try {
     console.log("Début de la génération d’un article...");
+    const allItems = await fetchAllFeeds();
 
-    const newArticle = await createOneArticleFromRSS();
-
-    if (!newArticle) {
-      return res.status(400).json({
-        error:
-          "Impossible de générer un nouvel article (pas assez de sources ou doute IA).",
-      });
+    if (!allItems || allItems.length < 3) {
+      console.log("Pas assez de sources pour générer un article.");
+      return res
+        .status(400)
+        .json({
+          error:
+            "Impossible de générer un nouvel article. Vérifiez qu’il y a assez de sources.",
+        });
     }
 
-    console.log("Article généré avec succès :", newArticle._id);
+    const chosenSources = allItems.slice(0, 3);
+    const { title, text, isDoubtful } = await generateArticleFromSources(
+      chosenSources
+    );
 
-    return res.status(201).json({
-      message: "Article créé avec succès",
-      article: newArticle,
-    });
+    if (isDoubtful || !title || !text) {
+      console.log("Impossible de générer un article (doute ou erreur IA).");
+      return res
+        .status(400)
+        .json({
+          error:
+            "Impossible de générer un nouvel article (pas assez de sources ou doute IA).",
+        });
+    }
+
+    const newArticle = new Article({ title, content: text, status: "standby" });
+    await newArticle.save();
+
+    console.log("Article généré avec succès.");
+    return res
+      .status(201)
+      .json({ message: "Article créé", article: newArticle });
   } catch (error) {
-    console.error("Erreur dans generateNow:", error);
+    console.error("Erreur lors de la génération de l’article:", error);
     return res.status(500).json({ error: error.message });
   }
 };
