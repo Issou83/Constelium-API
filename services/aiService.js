@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const { OpenAI } = require("openai");
 
 // Initialisation correcte du client OpenAI
