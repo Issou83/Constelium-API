@@ -1,11 +1,10 @@
 // services/aiService.js
-const { Configuration, OpenAIApi } = require("openai");
+const OpenAI = require("openai");
 
-// On crée notre config OpenAI avec la clé stockée en variable d'env
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
+// On initialise OpenAI avec la bonne méthode
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY, // Vérifie que ta clé API est bien définie
 });
-const openai = new OpenAIApi(configuration);
 
 async function generateArticleFromSources(sources) {
   // On assemble le texte de chaque source
@@ -30,7 +29,7 @@ async function generateArticleFromSources(sources) {
 
   try {
     const response = await openai.createCompletion({
-      model: "text-davinci-003", // ou "gpt-3.5-turbo" selon ton usage
+      model: "gpt-4", // ou "gpt-3.5-turbo" selon ton usage
       prompt,
       max_tokens: 1200,
       temperature: 0.7,
