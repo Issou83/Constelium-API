@@ -12,18 +12,17 @@ const { generateWeb3Image } = require("../services/aiImageService");
  * GENERATE – Générer un nouvel article immédiatement (hors cron)
  */
 exports.generateNow = async (req, res) => {
+  console.log("Requête reçue pour générer un nouvel article");
   try {
     console.log("Début de la génération d’un article...");
 
     const newArticle = await createOneArticleFromRSS();
 
     if (!newArticle) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Impossible de générer un nouvel article (pas assez de sources ou doute IA).",
-        });
+      return res.status(400).json({
+        error:
+          "Impossible de générer un nouvel article (pas assez de sources ou doute IA).",
+      });
     }
 
     console.log("Article généré avec succès :", newArticle._id);
@@ -33,7 +32,7 @@ exports.generateNow = async (req, res) => {
       article: newArticle,
     });
   } catch (error) {
-    console.error("Erreur generateNow:", error);
+    console.error("Erreur dans generateNow:", error);
     return res.status(500).json({ error: error.message });
   }
 };
