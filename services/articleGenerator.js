@@ -58,7 +58,7 @@ async function generateScheduledArticles() {
   // Pour faire très simple : on prend par ex. 3 items "random"
   // pour générer 1 article (démonstration).
   // Ou on fait un regroupement plus élaboré.
-  if (allItems.length < 3) {
+  if (allItems.length < 1) {
     console.log("Pas assez de sources pour générer un article complet.");
     return;
   }
