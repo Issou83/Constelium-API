@@ -41,7 +41,7 @@ async function generateArticleFromSources(sources) {
   try {
     // 🔹 Appel OpenAI avec la bonne API (`chat.completions.create()`)
     const response = await openai.chat.completions.create({
-      model: "gpt-4", // ou "gpt-3.5-turbo" selon ton accès
+      model: "gpt-4o-mini", // ou "gpt-3.5-turbo" selon ton accès
       messages: [{ role: "user", content: prompt }],
       max_tokens: 1200,
       temperature: 0.7,
