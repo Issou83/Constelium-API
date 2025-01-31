@@ -13,20 +13,21 @@ const { generateWeb3Image } = require("../services/aiImageService");
  */
 exports.generateNow = async (req, res) => {
   try {
-    // On appelle la fonction qui crée 1 article depuis les flux RSS
+    console.log("Début de la génération d’un article...");
+
     const newArticle = await createOneArticleFromRSS();
 
     if (!newArticle) {
-      // Si la génération a échoué (pas assez de sources, IA douteuse, etc.)
       return res
         .status(400)
         .json({
           error:
-            "Impossible de générer un nouvel article. Vérifiez qu’il y a assez de sources.",
+            "Impossible de générer un nouvel article (pas assez de sources ou doute IA).",
         });
     }
 
-    // Sinon, on renvoie l’article créé
+    console.log("Article généré avec succès :", newArticle._id);
+
     return res.status(201).json({
       message: "Article créé avec succès",
       article: newArticle,

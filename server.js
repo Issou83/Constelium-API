@@ -35,6 +35,10 @@ cron.schedule("0 8 * * *", async () => {
 
 app.use(cors(corsOptions));
 app.use(cookieParser()); // Middleware pour les cookies
+app.use((req, res, next) => {
+  req.setTimeout(60000); // Timeout de 60 secondes pour toutes les requêtes
+  next();
+});
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
