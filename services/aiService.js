@@ -1,11 +1,6 @@
 // services/aiService.js
-const { Configuration, OpenAIApi } = require("openai");
-
-// On crée notre config OpenAI avec la clé stockée en variable d'env
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
+const OpenAI = require("openai");
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 async function generateArticleFromSources(sources) {
   // On assemble le texte de chaque source
