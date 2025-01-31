@@ -1,8 +1,7 @@
-const OpenAI = require("openai");
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const axios = require("axios");
 
 async function generateArticleFromSources(sources) {
-  // On assemble le texte de chaque source
+  // Création du prompt basé sur les articles récupérés
   const combinedText = sources
     .map((s, i) => {
       return `Source ${i + 1}:\nTitre: ${s.title}\nExtrait: ${
@@ -11,32 +10,42 @@ async function generateArticleFromSources(sources) {
     })
     .join("\n");
 
-  // Prompt
   const prompt = `
     Tu es un rédacteur spécialisé en Web3.
     Je te fournis plusieurs extraits d'articles sur un thème similaire.
-    Tu dois rédiger un article d'environ 300 mots en bon français,
-      avec un TITRE accrocheur (sur une ligne) et le TEXTE (sur les lignes suivantes).
-    
+    - Vérifie s'il existe des infos douteuses ou contradictoires.
+
+    - Rédige un article bien structuré de 300 mots minimum en bon français,
+      avec un TITRE accrocheur et le TEXTE.
+      
     Extraits :
     ${combinedText}
   `;
 
   try {
-    const response = await openai.createCompletion({
-      model: "gpt-4", // ou "gpt-3.5-turbo" selon ton usage
-      prompt,
-      max_tokens: 1200,
-      temperature: 0.7,
-    });
+    const response = await axios.post(
+      "https://api-inference.huggingface.co/models/meta-llama/Llama-2-7b-chat-hf",
+      {
+        inputs: prompt,
+        parameters: {
+          max_length: 1200,
+          temperature: 0.7,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-    const rawOutput = response.data.choices[0].text?.trim() || "";
+    const rawOutput = response.data[0].generated_text.trim();
 
     if (rawOutput.includes("DOUTE")) {
       return { title: "", text: "", isDoubtful: true };
     }
 
-    // Essai de parser "TITRE: ...\nTEXTE: ..."
     const lines = rawOutput.split("\n").map((l) => l.trim());
     let title = "";
     let text = "";
@@ -55,14 +64,13 @@ async function generateArticleFromSources(sources) {
     }
 
     if (!title && !text) {
-      // fallback si l'IA n'a pas respecté le format
       title = "Article Web3";
       text = rawOutput;
     }
 
     return { title, text, isDoubtful: false };
   } catch (error) {
-    console.error("Erreur IA (OpenAI):", error);
+    console.error("Erreur IA (Hugging Face Llama 2) :", error);
     return { title: "", text: "", isDoubtful: true };
   }
 }
