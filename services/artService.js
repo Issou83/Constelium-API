@@ -12,83 +12,63 @@ const APIs = {
   parismusees: "https://api.parismusees.paris.fr/api/v1/works",
 };
 
-async function fetchWikimedia(query) {
-  const params = {
-    action: "query",
-    format: "json",
-    prop: "imageinfo",
-    generator: "search",
-    gsrsearch: query,
-    gsrlimit: 10,
-    iiprop: "url",
-  };
+async function fetchFromAPI(apiName, query, filters) {
+  if (filters.api && filters.api !== apiName) return []; // Si un filtre API est appliqué, on ignore les autres
 
-  const response = await axios.get(APIs.wikimedia, { params });
-  return response.data?.query?.pages || [];
+  let response;
+  switch (apiName) {
+    case "wikimedia":
+      response = await axios.get(APIs.wikimedia, {
+        params: {
+          action: "query",
+          format: "json",
+          prop: "imageinfo",
+          gsrsearch: query,
+          gsrlimit: 10,
+          iiprop: "url",
+        },
+      });
+      return response.data?.query?.pages || [];
+
+    case "unsplash":
+      response = await axios.get(APIs.unsplash, {
+        headers: { Authorization: `Client-ID ${process.env.UNSPLASH_API_KEY}` },
+        params: { query, per_page: 10 },
+      });
+      return response.data?.results || [];
+
+    case "pexels":
+      response = await axios.get(APIs.pexels, {
+        headers: { Authorization: process.env.PEXELS_API_KEY },
+        params: { query, per_page: 10 },
+      });
+      return response.data?.photos || [];
+
+    case "metmuseum":
+      response = await axios.get(`${APIs.metmuseum}/search`, {
+        params: { q: query, hasImages: true },
+      });
+      const objectIDs = response.data.objectIDs?.slice(0, 10) || [];
+      return await Promise.all(
+        objectIDs.map(
+          async (id) =>
+            (
+              await axios.get(`${APIs.metmuseum}/objects/${id}`)
+            ).data
+        )
+      );
+
+    default:
+      return [];
+  }
 }
 
-async function fetchUnsplash(query) {
-  const response = await axios.get(APIs.unsplash, {
-    headers: { Authorization: `Client-ID ${process.env.UNSPLASH_API_KEY}` },
-    params: { query, per_page: 10 },
-  });
-  return response.data?.results || [];
-}
-
-async function fetchPexels(query) {
-  const response = await axios.get(APIs.pexels, {
-    headers: { Authorization: process.env.PEXELS_API_KEY },
-    params: { query, per_page: 10 },
-  });
-  return response.data?.photos || [];
-}
-
-async function fetchMetMuseum(query) {
-  const response = await axios.get(`${APIs.metmuseum}/search`, {
-    params: { q: query, hasImages: true },
-  });
-
-  const objectIDs = response.data.objectIDs?.slice(0, 10) || [];
-  const artworks = await Promise.all(
-    objectIDs.map(async (id) => {
-      const res = await axios.get(`${APIs.metmuseum}/objects/${id}`);
-      return res.data;
-    })
-  );
-
-  return artworks;
-}
-
-async function fetchCleveland(query) {
-  const response = await axios.get(APIs.cleveland, {
-    params: { q: query, limit: 10 },
-  });
-  return response.data.data || [];
-}
-
-async function fetchEuropeana(query) {
-  const response = await axios.get(APIs.europeana, {
-    params: { wskey: process.env.EUROPEANA_API_KEY, query, rows: 10 },
-  });
-  return response.data.items || [];
-}
-
-async function fetchParisMusees(query) {
-  const response = await axios.get(APIs.parismusees, {
-    params: { title: query, per_page: 10 },
-  });
-  return response.data.data || [];
-}
-
-async function searchAllAPIs(query) {
+async function searchAllAPIs(query, filters) {
   const results = await Promise.allSettled([
-    fetchWikimedia(query),
-    fetchUnsplash(query),
-    fetchPexels(query),
-    fetchMetMuseum(query),
-    fetchCleveland(query),
-    fetchEuropeana(query),
-    fetchParisMusees(query),
+    fetchFromAPI("wikimedia", query, filters),
+    fetchFromAPI("unsplash", query, filters),
+    fetchFromAPI("pexels", query, filters),
+    fetchFromAPI("metmuseum", query, filters),
   ]);
 
   return results.map((result) =>
