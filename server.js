@@ -5,7 +5,8 @@ const connectDB = require("./db");
 const nftRoutes = require("./routes/nftRoutes");
 const userRoutes = require("./routes/userRoutes");
 const articleRoutes = require("./routes/articleRoutes");
-const artRoutes = require("./routes/artRoutes"); // Ajout des nouvelles routes
+const artRoutes = require("./routes/artRoutes");
+
 const cron = require("node-cron");
 const { generateScheduledArticles } = require("./services/articleGenerator");
 
@@ -22,30 +23,6 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };
-
-// 🚀 Planification quotidienne des mises à jour (03:00 AM pour artistes et musées, 08:00 AM pour les articles)
-cron.schedule("0 3 * * *", async () => {
-  console.log("🔄 Mise à jour automatique des artistes et musées...");
-  try {
-    await updateArtData();
-    console.log("✅ Mise à jour réussie !");
-  } catch (error) {
-    console.error("❌ Erreur lors de la mise à jour :", error.message);
-  }
-});
-
-cron.schedule("0 8 * * *", async () => {
-  console.log("📌 Début de la génération automatique d’articles (08h00)...");
-  try {
-    await generateScheduledArticles();
-    console.log("✅ Génération d’articles terminée !");
-  } catch (error) {
-    console.error(
-      "❌ Erreur lors de la génération d’articles :",
-      error.message
-    );
-  }
-});
 
 // Planification quotidienne à 08h00 (modifier si besoin)
 cron.schedule("0 8 * * *", async () => {
@@ -70,8 +47,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/user", userRoutes);
 app.use("/nfts", nftRoutes);
 app.use("/articles", articleRoutes);
-app.use("/art", artRoutes); // Ajout des routes de l'API art
-
+app.use("/api", artRoutes);
 app.listen(port, () => {
   console.log(`Serveur en écoute sur http://localhost:${port}`);
 });
