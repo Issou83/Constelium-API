@@ -8,15 +8,6 @@ if (!Museum) {
   );
 }
 
-// ✅ Vérification que les clés API sont bien définies
-Object.entries(API_KEYS).forEach(([key, value]) => {
-  if (!value) {
-    console.warn(
-      `⚠️ Attention : La clé API pour ${key.toUpperCase()} est absente dans .env`
-    );
-  }
-});
-
 // Clés API stockées dans .env
 const API_KEYS = {
   unsplash: process.env.UNSPLASH_KEY,
@@ -25,6 +16,15 @@ const API_KEYS = {
   rmn: process.env.RMN_KEY,
   europeana: process.env.EUROPEANA_KEY,
 };
+
+// ✅ Vérification que les clés API sont bien définies
+Object.entries(API_KEYS).forEach(([key, value]) => {
+  if (!value) {
+    console.warn(
+      `⚠️ Attention : La clé API pour ${key.toUpperCase()} est absente dans .env`
+    );
+  }
+});
 
 // 📌 API Wikimedia Commons
 const fetchWikimedia = async (query) => {
