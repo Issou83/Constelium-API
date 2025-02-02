@@ -11,6 +11,16 @@ const cron = require("node-cron");
 const { generateScheduledArticles } = require("./services/articleGenerator");
 const { updateArtData } = require("./controllers/artController");
 
+// ✅ Vérification de l'import de `artRoutes`
+if (!artRoutes) {
+  throw new Error("🚨 Erreur : `artRoutes` n'est pas défini !");
+}
+
+// ✅ Vérification de `updateArtData`
+if (!updateArtData) {
+  console.warn("⚠️ `updateArtData` n'est pas défini dans `artController.js` !");
+}
+
 require("dotenv").config();
 
 const app = express();
