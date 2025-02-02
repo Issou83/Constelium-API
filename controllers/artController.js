@@ -58,3 +58,10 @@ exports.getMuseums = async (req, res) => {
     res.status(500).json({ error: "Erreur récupération musées" });
   }
 };
+
+// ✅ Mise à jour des musées stockés en BDD
+exports.updateArtData = async (req, res) => {
+  res.json({
+    message: "🔄 Fonction `updateArtData` encore en développement !",
+  });
+};
