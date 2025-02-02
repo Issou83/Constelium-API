@@ -4,7 +4,7 @@ const APIs = {
   wikimedia: "https://commons.wikimedia.org/w/api.php",
   metmuseum: "https://collectionapi.metmuseum.org/public/collection/v1",
   cleveland: "https://openaccess-api.clevelandart.org/api/artworks",
-  parismusees: "https://api.parismusees.paris.fr/api/v1/works",
+  parismusees: "https://apicollections.parismusees.paris.fr/graphql",
 };
 
 // 📌 Convertir les URLs de Wikimedia en images exploitables
