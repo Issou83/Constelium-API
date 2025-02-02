@@ -1,5 +1,5 @@
 const axios = require("axios");
-const { Artist, Museum } = require("../models/ArtData");
+const { Museum } = require("../models/ArtData");
 
 // Clés API stockées dans .env
 const API_KEYS = {
@@ -10,7 +10,7 @@ const API_KEYS = {
   europeana: process.env.EUROPEANA_KEY,
 };
 
-// 📌 API Wikimedia Commons (Photos & Peintures)
+// 📌 API Wikimedia Commons
 const fetchWikimedia = async (query) => {
   const url = `https://commons.wikimedia.org/w/api.php?action=query&format=json&list=search&srsearch=${query}`;
   try {
@@ -31,7 +31,7 @@ const fetchWikimedia = async (query) => {
   }
 };
 
-// 📌 API Unsplash (Photographies artistiques)
+// 📌 API Unsplash
 const fetchUnsplash = async (query) => {
   const url = `https://api.unsplash.com/search/photos?query=${query}&per_page=10`;
   try {
@@ -48,12 +48,12 @@ const fetchUnsplash = async (query) => {
       source: "Unsplash",
     }));
   } catch (error) {
-    console.error("❌ Erreur Unsplash:", error.response?.data || error.message);
+    console.error("❌ Erreur Unsplash:", error.message);
     return [];
   }
 };
 
-// 📌 API Pexels (Photographies)
+// 📌 API Pexels
 const fetchPexels = async (query) => {
   const url = `https://api.pexels.com/v1/search?query=${query}&per_page=10`;
   try {
@@ -74,13 +74,13 @@ const fetchPexels = async (query) => {
   }
 };
 
-// 📌 API Metropolitan Museum of Art (Peintures, Sculptures)
+// 📌 API Metropolitan Museum of Art
 const fetchMetMuseum = async (query) => {
   const url = `https://collectionapi.metmuseum.org/public/collection/v1/search?q=${query}`;
   try {
     const response = await axios.get(url);
-    const objectIDs = response.data.objectIDs?.slice(0, 10) || []; // Limite à 10 résultats
-    const artworks = await Promise.all(
+    const objectIDs = response.data.objectIDs?.slice(0, 10) || [];
+    return await Promise.all(
       objectIDs.map(async (id) => {
         const artResponse = await axios.get(
           `https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`
@@ -94,7 +94,6 @@ const fetchMetMuseum = async (query) => {
         };
       })
     );
-    return artworks;
   } catch (error) {
     console.error("❌ Erreur MET:", error.message);
     return [];
@@ -121,38 +120,20 @@ const fetchClevelandMuseum = async (query) => {
   }
 };
 
-// 📌 API Europeana (Peintures, Sculptures)
-const fetchEuropeana = async (query) => {
-  const url = `https://api.europeana.eu/record/v2/search.json?wskey=${API_KEYS.europeana}&query=${query}&rows=10`;
+// 📌 API Getty Foundation
+const fetchGetty = async (query) => {
+  const url = `https://api.getty.edu/v1/search?apikey=${API_KEYS.getty}&query=${query}`;
   try {
     const response = await axios.get(url);
     return response.data.items.map((art) => ({
-      title: art.title[0],
-      image: art.edmPreview[0] || "",
-      artist: art.dcCreator?.[0] || "Inconnu",
-      museum: art.dataProvider[0] || "Europeana",
-      source: "Europeana",
+      title: art.title || "Sans titre",
+      image: art.image_url || "",
+      artist: art.creator || "Inconnu",
+      museum: "Getty Foundation",
+      source: "Getty Foundation",
     }));
   } catch (error) {
-    console.error("❌ Erreur Europeana:", error.message);
-    return [];
-  }
-};
-
-// 📌 API Paris Musées
-const fetchParisMusees = async (query) => {
-  const url = `https://api.parismusees.paris.fr/api/records/1.0/search?q=${query}&rows=10`;
-  try {
-    const response = await axios.get(url);
-    return response.data.records.map((record) => ({
-      title: record.fields?.title || "Sans titre",
-      image: record.fields?.illustration?.[0]?.thumbnail_url || "",
-      artist: record.fields?.auteur?.join(", ") || "Inconnu",
-      museum: "Paris Musées",
-      source: "Paris Musées",
-    }));
-  } catch (error) {
-    console.error("❌ Erreur Paris Musées:", error.message);
+    console.error("❌ Erreur Getty:", error.message);
     return [];
   }
 };
@@ -168,8 +149,7 @@ exports.searchArtworks = async (req, res) => {
     fetchPexels(query),
     fetchMetMuseum(query),
     fetchClevelandMuseum(query),
-    fetchEuropeana(query),
-    fetchParisMusees(query),
+    fetchGetty(query),
   ];
 
   try {
@@ -183,4 +163,14 @@ exports.searchArtworks = async (req, res) => {
   }
 
   res.json(results);
+};
+
+// 📌 Récupération des musées stockés en BDD
+exports.getMuseums = async (req, res) => {
+  try {
+    const museums = await Museum.find();
+    res.json(museums);
+  } catch (error) {
+    res.status(500).json({ error: "Erreur récupération musées" });
+  }
 };
