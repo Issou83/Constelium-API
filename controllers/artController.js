@@ -25,7 +25,12 @@ exports.searchParisMusees = async (req, res) => {
     res.status(500).json({ error: "Erreur recherche Paris Musées" });
   }
 };
-
+// ✅ Vérification de la route `/filter`
+exports.filterArtworks = async (req, res) => {
+  res.json({
+    message: "🔍 Fonction `filterArtworks` encore en développement !",
+  });
+};
 // 📌 Route pour rechercher des œuvres dans les 4 API
 exports.searchArtworks = async (req, res) => {
   if (!req.query.query) {
