@@ -1,18 +1,36 @@
 const express = require("express");
 const router = express.Router();
-const artController = require("../controllers/artController"); // ✅ Vérification de l'import correct
+const artController = require("../controllers/artController");
 
-// Recherche d’œuvres par mot-clé (Input)
+// ✅ Vérifier que chaque fonction appelée existe bien dans `artController.js`
+if (!artController.searchArtworks) {
+  throw new Error(
+    "🚨 Erreur : `searchArtworks` n'est pas défini dans `artController.js` !"
+  );
+}
+
+if (!artController.filterArtworks) {
+  throw new Error(
+    "🚨 Erreur : `filterArtworks` n'est pas défini dans `artController.js` !"
+  );
+}
+
+if (!artController.getMuseums) {
+  throw new Error(
+    "🚨 Erreur : `getMuseums` n'est pas défini dans `artController.js` !"
+  );
+}
+
+if (!artController.updateArtData) {
+  throw new Error(
+    "🚨 Erreur : `updateArtData` n'est pas défini dans `artController.js` !"
+  );
+}
+
+// ✅ Routes sécurisées avec vérification des imports
 router.get("/search", artController.searchArtworks);
-
-// Recherche via menus déroulants (musée + artiste)
 router.get("/filter", artController.filterArtworks);
-
-// Récupération des musées et artistes stockés en BDD
 router.get("/museums", artController.getMuseums);
-// router.get("/artists", artController.getArtists);
-
-// Mise à jour des artistes et musées en BDD (Appel API pour enrichir la base)
 router.post("/update-art-data", artController.updateArtData);
 
 module.exports = router;

@@ -1,6 +1,22 @@
 const axios = require("axios");
 const { Museum } = require("../models/ArtData");
 
+// ✅ Vérification que `Museum` est bien importé
+if (!Museum) {
+  throw new Error(
+    "🚨 Erreur : `Museum` n'est pas défini dans `models/ArtData.js` !"
+  );
+}
+
+// ✅ Vérification que les clés API sont bien définies
+Object.entries(API_KEYS).forEach(([key, value]) => {
+  if (!value) {
+    console.warn(
+      `⚠️ Attention : La clé API pour ${key.toUpperCase()} est absente dans .env`
+    );
+  }
+});
+
 // Clés API stockées dans .env
 const API_KEYS = {
   unsplash: process.env.UNSPLASH_KEY,
@@ -138,33 +154,64 @@ const fetchGetty = async (query) => {
   }
 };
 
-// 📌 Fonction centralisée pour regrouper tous les résultats
-exports.searchArtworks = async (req, res) => {
-  const { query } = req.query;
-  let results = [];
+// ✅ Vérification que les clés API sont bien définies
+Object.entries(API_KEYS).forEach(([key, value]) => {
+  if (!value) {
+    console.warn(
+      `⚠️ Attention : La clé API pour ${key.toUpperCase()} est absente dans .env`
+    );
+  }
+});
 
-  const allPromises = [
-    fetchWikimedia(query),
-    fetchUnsplash(query),
-    fetchPexels(query),
-    fetchMetMuseum(query),
-    fetchClevelandMuseum(query),
-    fetchGetty(query),
-  ];
+// ✅ Fonction pour rechercher des œuvres d'art (évite `undefined`)
+exports.searchArtworks = async (req, res) => {
+  if (!req.query.query) {
+    return res
+      .status(400)
+      .json({ error: "Veuillez fournir un paramètre `query`." });
+  }
 
   try {
-    const allResults = await Promise.all(allPromises);
-    results = allResults.flat();
+    const allResults = await Promise.all([
+      fetchWikimedia(req.query.query),
+      fetchUnsplash(req.query.query),
+      fetchPexels(req.query.query),
+      fetchMetMuseum(req.query.query),
+    ]);
+    res.json(allResults.flat());
   } catch (error) {
     console.error(
       "❌ Erreur lors de l'agrégation des résultats:",
       error.message
     );
+    res.status(500).json({ error: "Erreur serveur." });
   }
-
-  res.json(results);
 };
 
+// ✅ Vérification de la route `/filter`
+exports.filterArtworks = async (req, res) => {
+  res.json({
+    message: "🔍 Fonction `filterArtworks` encore en développement !",
+  });
+};
+
+// ✅ Vérification de la route `/museums`
+exports.getMuseums = async (req, res) => {
+  try {
+    const museums = await Museum.find();
+    res.json(museums);
+  } catch (error) {
+    console.error("❌ Erreur récupération musées :", error.message);
+    res.status(500).json({ error: "Erreur récupération musées" });
+  }
+};
+
+// ✅ Mise à jour des musées stockés en BDD
+exports.updateArtData = async (req, res) => {
+  res.json({
+    message: "🔄 Fonction `updateArtData` encore en développement !",
+  });
+};
 // 📌 Récupération des musées stockés en BDD
 exports.getMuseums = async (req, res) => {
   try {
