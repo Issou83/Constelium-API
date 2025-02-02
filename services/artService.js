@@ -93,19 +93,45 @@ async function fetchClevelandMuseum(query) {
   }
 }
 
-// 📌 Fonction pour récupérer les œuvres depuis Paris Musées
+// 📌 Récupérer les œuvres depuis Paris Musées avec GraphQL
 async function fetchParisMusees(query) {
+  const token = process.env.PARIS_MUSEES_KEY;
+  if (!token) {
+    console.error("❌ Aucun token trouvé pour l'API Paris Musées !");
+    return [];
+  }
+
+  const graphqlQuery = {
+    query: `
+      {
+        nodeQuery(filter: { conditions: [{ field: "type", value: "oeuvre" }, { field: "title", value: "${query}" }] }) {
+          entities {
+            entityUuid
+            title
+            absolutePath
+            fieldMusee { entity { name } }
+            fieldOeuvreAuteurs { entity { name } }
+            fieldVisuelsPrincipals { entity { vignette } }
+          }
+        }
+      }
+    `,
+  };
+
   try {
-    const response = await axios.get(APIs.parismusees, {
-      params: { q: query },
+    const response = await axios.post(APIs.parismusees, graphqlQuery, {
+      headers: {
+        "Content-Type": "application/json",
+        "auth-token": token,
+      },
     });
 
-    return response.data.records.map((item) => ({
-      id: item.recordid,
-      title: item.fields?.title || "Sans titre",
-      image: item.fields?.illustration?.[0]?.thumbnail_url || "",
-      artist: item.fields?.auteur?.join(", ") || "Inconnu",
-      museum: "Paris Musées",
+    return response.data.data.nodeQuery.entities.map((item) => ({
+      id: item.entityUuid,
+      title: item.title || "Sans titre",
+      image: item.fieldVisuelsPrincipals?.entity?.vignette || "",
+      artist: item.fieldOeuvreAuteurs?.entity?.name || "Inconnu",
+      museum: item.fieldMusee?.entity?.name || "Paris Musées",
       source: "Paris Musées",
     }));
   } catch (error) {
@@ -127,6 +153,13 @@ async function searchAllAPIs(query) {
     .filter((result) => result.status === "fulfilled")
     .flatMap((result) => result.value)
     .filter((item) => item !== null); // Supprime les entrées vides
+}
+
+// 📌 Fonction pour basculer entre les deux modes de recherche
+async function searchArtworks(query, mode = "classic") {
+  return mode === "classic"
+    ? searchClassicMode(query)
+    : fetchParisMusees(query);
 }
 
 module.exports = { searchAllAPIs };
