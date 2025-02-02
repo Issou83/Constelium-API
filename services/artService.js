@@ -1,79 +1,122 @@
-require("dotenv").config();
 const axios = require("axios");
 
 const APIs = {
   wikimedia: "https://commons.wikimedia.org/w/api.php",
-  unsplash: "https://api.unsplash.com/search/photos",
-  pexels: "https://api.pexels.com/v1/search",
   metmuseum: "https://collectionapi.metmuseum.org/public/collection/v1",
   cleveland: "https://openaccess-api.clevelandart.org/api/artworks",
-  getty: "https://data.getty.edu/",
-  europeana: "https://api.europeana.eu/record/v2/search.json",
   parismusees: "https://api.parismusees.paris.fr/api/v1/works",
 };
 
-async function fetchFromAPI(apiName, query, filters) {
-  if (filters.api && filters.api !== apiName) return []; // Si un filtre API est appliqué, on ignore les autres
+// 📌 Fonction pour récupérer les œuvres depuis Wikimedia Commons
+async function fetchWikimedia(query) {
+  try {
+    const response = await axios.get(APIs.wikimedia, {
+      params: {
+        action: "query",
+        format: "json",
+        list: "search",
+        srsearch: query,
+      },
+    });
 
-  let response;
-  switch (apiName) {
-    case "wikimedia":
-      response = await axios.get(APIs.wikimedia, {
-        params: {
-          action: "query",
-          format: "json",
-          prop: "imageinfo",
-          gsrsearch: query,
-          gsrlimit: 10,
-          iiprop: "url",
-        },
-      });
-      return response.data?.query?.pages || [];
-
-    case "unsplash":
-      response = await axios.get(APIs.unsplash, {
-        headers: { Authorization: `Client-ID ${process.env.UNSPLASH_API_KEY}` },
-        params: { query, per_page: 10 },
-      });
-      return response.data?.results || [];
-
-    case "pexels":
-      response = await axios.get(APIs.pexels, {
-        headers: { Authorization: process.env.PEXELS_API_KEY },
-        params: { query, per_page: 10 },
-      });
-      return response.data?.photos || [];
-
-    case "metmuseum":
-      response = await axios.get(`${APIs.metmuseum}/search`, {
-        params: { q: query, hasImages: true },
-      });
-      const objectIDs = response.data.objectIDs?.slice(0, 10) || [];
-      return await Promise.all(
-        objectIDs.map(
-          async (id) =>
-            (
-              await axios.get(`${APIs.metmuseum}/objects/${id}`)
-            ).data
-        )
-      );
-
-    default:
-      return [];
+    return response.data.query.search.map((item) => ({
+      id: item.pageid,
+      title: item.title,
+      image: `https://commons.wikimedia.org/wiki/Special:FilePath/${item.title.replace(
+        / /g,
+        "_"
+      )}`,
+      artist: "Inconnu",
+      museum: "Wikimedia Commons",
+      source: "Wikimedia Commons",
+    }));
+  } catch (error) {
+    console.error("❌ Erreur Wikimedia:", error.message);
+    return [];
   }
 }
 
-async function searchAllAPIs(query, filters) {
+// 📌 Fonction pour récupérer les œuvres depuis le Metropolitan Museum of Art
+async function fetchMetMuseum(query) {
+  try {
+    const response = await axios.get(`${APIs.metmuseum}/search`, {
+      params: { q: query, hasImages: true },
+    });
+
+    const objectIDs = response.data.objectIDs?.slice(0, 10) || [];
+    return await Promise.all(
+      objectIDs.map(async (id) => {
+        const artResponse = await axios.get(`${APIs.metmuseum}/objects/${id}`);
+        return {
+          id: artResponse.data.objectID,
+          title: artResponse.data.title,
+          image: artResponse.data.primaryImage || "",
+          artist: artResponse.data.artistDisplayName || "Inconnu",
+          museum: artResponse.data.repository || "Metropolitan Museum of Art",
+          source: "Metropolitan Museum of Art",
+        };
+      })
+    );
+  } catch (error) {
+    console.error("❌ Erreur MET:", error.message);
+    return [];
+  }
+}
+
+// 📌 Fonction pour récupérer les œuvres depuis le Cleveland Museum of Art
+async function fetchClevelandMuseum(query) {
+  try {
+    const response = await axios.get(APIs.cleveland, {
+      params: { q: query, limit: 10 },
+    });
+
+    return response.data.data.map((item) => ({
+      id: item.id,
+      title: item.title,
+      image: item.images?.web?.url || "",
+      artist: item.creators?.[0]?.description || "Inconnu",
+      museum: "Cleveland Museum of Art",
+      source: "Cleveland Museum of Art",
+    }));
+  } catch (error) {
+    console.error("❌ Erreur Cleveland Museum:", error.message);
+    return [];
+  }
+}
+
+// 📌 Fonction pour récupérer les œuvres depuis Paris Musées
+async function fetchParisMusees(query) {
+  try {
+    const response = await axios.get(APIs.parismusees, {
+      params: { q: query },
+    });
+
+    return response.data.records.map((item) => ({
+      id: item.recordid,
+      title: item.fields?.title || "Sans titre",
+      image: item.fields?.illustration?.[0]?.thumbnail_url || "",
+      artist: item.fields?.auteur?.join(", ") || "Inconnu",
+      museum: "Paris Musées",
+      source: "Paris Musées",
+    }));
+  } catch (error) {
+    console.error("❌ Erreur Paris Musées:", error.message);
+    return [];
+  }
+}
+
+// 📌 Fonction pour rechercher dans toutes les API
+async function searchAllAPIs(query) {
   const results = await Promise.allSettled([
-    fetchFromAPI("wikimedia", query, filters),
-    fetchFromAPI("unsplash", query, filters),
-    fetchFromAPI("pexels", query, filters),
-    fetchFromAPI("metmuseum", query, filters),
+    fetchWikimedia(query),
+    fetchMetMuseum(query),
+    fetchClevelandMuseum(query),
+    fetchParisMusees(query),
   ]);
 
-  return results.map((result) =>
-    result.status === "fulfilled" ? result.value : []
-  );
+  return results
+    .filter((result) => result.status === "fulfilled")
+    .flatMap((result) => result.value);
 }
 
 module.exports = { searchAllAPIs };
