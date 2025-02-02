@@ -7,6 +7,13 @@ const APIs = {
   parismusees: "https://api.parismusees.paris.fr/api/v1/works",
 };
 
+// 📌 Convertir les URLs de Wikimedia en images exploitables
+const formatWikimediaImageUrl = (title) => {
+  return `https://upload.wikimedia.org/wikipedia/commons/thumb/${title.charAt(
+    0
+  )}/${title.replace(/ /g, "_")}/800px-${title.replace(/ /g, "_")}.jpg`;
+};
+
 // 📌 Fonction pour récupérer les œuvres depuis Wikimedia Commons
 async function fetchWikimedia(query) {
   try {
@@ -22,10 +29,7 @@ async function fetchWikimedia(query) {
     return response.data.query.search.map((item) => ({
       id: item.pageid,
       title: item.title,
-      image: `https://commons.wikimedia.org/wiki/Special:FilePath/${item.title.replace(
-        / /g,
-        "_"
-      )}`,
+      image: formatWikimediaImageUrl(item.title),
       artist: "Inconnu",
       museum: "Wikimedia Commons",
       source: "Wikimedia Commons",
@@ -47,10 +51,15 @@ async function fetchMetMuseum(query) {
     return await Promise.all(
       objectIDs.map(async (id) => {
         const artResponse = await axios.get(`${APIs.metmuseum}/objects/${id}`);
+        const imageUrl = artResponse.data.primaryImage || "";
+
+        // ✅ Exclure les entrées sans image
+        if (!imageUrl) return null;
+
         return {
           id: artResponse.data.objectID,
           title: artResponse.data.title,
-          image: artResponse.data.primaryImage || "",
+          image: imageUrl,
           artist: artResponse.data.artistDisplayName || "Inconnu",
           museum: artResponse.data.repository || "Metropolitan Museum of Art",
           source: "Metropolitan Museum of Art",
@@ -105,7 +114,7 @@ async function fetchParisMusees(query) {
   }
 }
 
-// 📌 Fonction pour rechercher dans toutes les API
+// 📌 Fonction pour rechercher dans toutes les API et harmoniser les données
 async function searchAllAPIs(query) {
   const results = await Promise.allSettled([
     fetchWikimedia(query),
@@ -116,7 +125,8 @@ async function searchAllAPIs(query) {
 
   return results
     .filter((result) => result.status === "fulfilled")
-    .flatMap((result) => result.value);
+    .flatMap((result) => result.value)
+    .filter((item) => item !== null); // Supprime les entrées vides
 }
 
 module.exports = { searchAllAPIs };
