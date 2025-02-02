@@ -93,25 +93,73 @@ async function fetchClevelandMuseum(query) {
   }
 }
 
-// 📌 Récupérer les œuvres depuis Paris Musées avec GraphQL
-async function fetchParisMusees(query) {
+// 📌 Récupérer les filtres disponibles pour Paris Musées (artistes, musées, types d'œuvres)
+async function fetchParisMuseesFilters() {
   const token = process.env.PARIS_MUSEES_KEY;
   if (!token) {
     console.error("❌ Aucun token trouvé pour l'API Paris Musées !");
-    return [];
+    return { artists: [], museums: [], types: [] };
   }
 
   const graphqlQuery = {
     query: `
       {
-        nodeQuery(filter: { conditions: [{ field: "type", value: "oeuvre" }, { field: "title", value: "${query}" }] }) {
+        artists: taxonomyTermQuery(filter: {conditions: [{field: "vid", value: "auteurs"}]}) {
+          entities { name }
+        }
+        museums: taxonomyTermQuery(filter: {conditions: [{field: "vid", value: "musees"}]}) {
+          entities { name }
+        }
+        types: taxonomyTermQuery(filter: {conditions: [{field: "vid", value: "types_objet"}]}) {
+          entities { name }
+        }
+      }
+    `,
+  };
+
+  try {
+    const response = await axios.post(APIs.parismusees, graphqlQuery, {
+      headers: {
+        "Content-Type": "application/json",
+        "auth-token": token,
+      },
+    });
+
+    return {
+      artists: response.data.data.artists.entities.map((item) => item.name),
+      museums: response.data.data.museums.entities.map((item) => item.name),
+      types: response.data.data.types.entities.map((item) => item.name),
+    };
+  } catch (error) {
+    console.error(
+      "❌ Erreur récupération filtres Paris Musées:",
+      error.message
+    );
+    return { artists: [], museums: [], types: [] };
+  }
+}
+
+// 📌 Récupérer les œuvres depuis Paris Musées avec GraphQL et filtres
+async function fetchParisMusees(query, artist, museum, type) {
+  const token = process.env.PARIS_MUSEES_KEY;
+  if (!token) return [];
+
+  let conditions = [{ field: "type", value: "oeuvre" }];
+  if (query) conditions.push({ field: "title", value: query });
+  if (artist) conditions.push({ field: "field_auteur", value: artist });
+  if (museum) conditions.push({ field: "field_musee", value: museum });
+  if (type) conditions.push({ field: "field_type_objet", value: type });
+
+  const graphqlQuery = {
+    query: `
+      {
+        nodeQuery(filter: { conditions: ${JSON.stringify(conditions)} }) {
           entities {
             entityUuid
             title
-            absolutePath
+            fieldVisuelsPrincipals { entity { vignette } }
             fieldMusee { entity { name } }
             fieldOeuvreAuteurs { entity { name } }
-            fieldVisuelsPrincipals { entity { vignette } }
           }
         }
       }
@@ -140,7 +188,7 @@ async function fetchParisMusees(query) {
   }
 }
 
-// 📌 Fonction pour rechercher dans toutes les API et harmoniser les données
+// 📌 Fonction de recherche pour toutes les API
 async function searchAllAPIs(query) {
   const results = await Promise.allSettled([
     fetchWikimedia(query),
@@ -152,14 +200,14 @@ async function searchAllAPIs(query) {
   return results
     .filter((result) => result.status === "fulfilled")
     .flatMap((result) => result.value)
-    .filter((item) => item !== null); // Supprime les entrées vides
+    .filter((item) => item !== null);
 }
 
-// 📌 Fonction pour basculer entre les deux modes de recherche
-async function searchArtworks(query, mode = "classic") {
+// 📌 Fonction pour rechercher dans un mode spécifique
+async function searchArtworks(query, mode = "classic", artist, museum, type) {
   return mode === "classic"
-    ? searchClassicMode(query)
-    : fetchParisMusees(query);
+    ? searchAllAPIs(query)
+    : fetchParisMusees(query, artist, museum, type);
 }
 
-module.exports = { searchAllAPIs };
+module.exports = { searchAllAPIs, searchArtworks, fetchParisMuseesFilters };
