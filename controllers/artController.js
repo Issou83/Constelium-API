@@ -1,6 +1,6 @@
-const { searchAllAPIs } = require("../services/artService");
-
 const {
+  searchAllAPIs,
+  fetchMuseums,
   fetchParisMuseesFilters,
   fetchParisMusees,
 } = require("../services/artService");
@@ -47,6 +47,11 @@ exports.searchArtworks = async (req, res) => {
     res.status(500).json({ error: "Erreur serveur." });
   }
 };
+
+// 📌 Vérification de l'importation correcte
+if (!fetchMuseums) {
+  throw new Error("🚨 Erreur : `fetchMuseums` n'est pas défini !");
+}
 
 // 📌 Route pour récupérer la liste des musées
 exports.getMuseums = async (req, res) => {

@@ -93,51 +93,51 @@ async function fetchClevelandMuseum(query) {
   }
 }
 
-// 📌 Récupérer les filtres disponibles pour Paris Musées (artistes, musées, types d'œuvres)
-async function fetchParisMuseesFilters() {
-  const token = process.env.PARIS_MUSEES_KEY;
-  if (!token) {
-    console.error("❌ Aucun token trouvé pour l'API Paris Musées !");
-    return { artists: [], museums: [], types: [] };
-  }
+// // 📌 Récupérer les filtres disponibles pour Paris Musées (artistes, musées, types d'œuvres)
+// async function fetchParisMuseesFilters() {
+//   const token = process.env.PARIS_MUSEES_KEY;
+//   if (!token) {
+//     console.error("❌ Aucun token trouvé pour l'API Paris Musées !");
+//     return { artists: [], museums: [], types: [] };
+//   }
 
-  const graphqlQuery = {
-    query: `
-      {
-        artists: taxonomyTermQuery(filter: {conditions: [{field: "vid", value: "auteurs"}]}) {
-          entities { name }
-        }
-        museums: taxonomyTermQuery(filter: {conditions: [{field: "vid", value: "musees"}]}) {
-          entities { name }
-        }
-        types: taxonomyTermQuery(filter: {conditions: [{field: "vid", value: "types_objet"}]}) {
-          entities { name }
-        }
-      }
-    `,
-  };
+//   const graphqlQuery = {
+//     query: `
+//       {
+//         artists: taxonomyTermQuery(filter: {conditions: [{field: "vid", value: "auteurs"}]}) {
+//           entities { name }
+//         }
+//         museums: taxonomyTermQuery(filter: {conditions: [{field: "vid", value: "musees"}]}) {
+//           entities { name }
+//         }
+//         types: taxonomyTermQuery(filter: {conditions: [{field: "vid", value: "types_objet"}]}) {
+//           entities { name }
+//         }
+//       }
+//     `,
+//   };
 
-  try {
-    const response = await axios.post(APIs.parismusees, graphqlQuery, {
-      headers: {
-        "Content-Type": "application/json",
-        "auth-token": token,
-      },
-    });
+//   try {
+//     const response = await axios.post(APIs.parismusees, graphqlQuery, {
+//       headers: {
+//         "Content-Type": "application/json",
+//         "auth-token": token,
+//       },
+//     });
 
-    return {
-      artists: response.data.data.artists.entities.map((item) => item.name),
-      museums: response.data.data.museums.entities.map((item) => item.name),
-      types: response.data.data.types.entities.map((item) => item.name),
-    };
-  } catch (error) {
-    console.error(
-      "❌ Erreur récupération filtres Paris Musées:",
-      error.message
-    );
-    return { artists: [], museums: [], types: [] };
-  }
-}
+//     return {
+//       artists: response.data.data.artists.entities.map((item) => item.name),
+//       museums: response.data.data.museums.entities.map((item) => item.name),
+//       types: response.data.data.types.entities.map((item) => item.name),
+//     };
+//   } catch (error) {
+//     console.error(
+//       "❌ Erreur récupération filtres Paris Musées:",
+//       error.message
+//     );
+//     return { artists: [], museums: [], types: [] };
+//   }
+// }
 
 // 📌 Liste statique des musées pour éviter l'erreur 404
 const staticMuseums = [
