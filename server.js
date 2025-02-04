@@ -5,13 +5,8 @@ const connectDB = require("./db");
 const nftRoutes = require("./routes/nftRoutes");
 const userRoutes = require("./routes/userRoutes");
 const articleRoutes = require("./routes/articleRoutes");
-<<<<<<< HEAD
 // Dans ton fichier principal (par exemple app.js ou server.js)
 const unsplashRoutes = require("./routes/unsplashRoutes");
-=======
-const artRoutes = require("./routes/artRoutes");
-
->>>>>>> ff1c4b0df8d29eb781ffc3d15ec7e08a99f1af2c
 const cron = require("node-cron");
 const { generateScheduledArticles } = require("./services/articleGenerator");
 const { updateArtData } = require("./controllers/artController");
@@ -74,12 +69,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/user", userRoutes);
 app.use("/nfts", nftRoutes);
 app.use("/articles", articleRoutes);
-<<<<<<< HEAD
 app.use("/unsplash", unsplashRoutes);
 
-=======
-app.use("/art", artRoutes);
->>>>>>> ff1c4b0df8d29eb781ffc3d15ec7e08a99f1af2c
 app.listen(port, () => {
   console.log(`Serveur en écoute sur http://localhost:${port}`);
 });
