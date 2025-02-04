@@ -9,12 +9,6 @@ const articleRoutes = require("./routes/articleRoutes");
 const unsplashRoutes = require("./routes/unsplashRoutes");
 const cron = require("node-cron");
 const { generateScheduledArticles } = require("./services/articleGenerator");
-const { updateArtData } = require("./controllers/artController");
-
-// ✅ Vérification de `updateArtData`
-if (!updateArtData) {
-  console.warn("⚠️ `updateArtData` n'est pas défini dans `artController.js` !");
-}
 
 require("dotenv").config();
 

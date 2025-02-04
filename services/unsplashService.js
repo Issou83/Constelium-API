@@ -13,15 +13,17 @@ const unsplashApi = axios.create({
   baseURL: "https://api.unsplash.com",
   headers: {
     Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`,
+    "Accept-Version": "v1", // IMPORTANT : indique la version de l'API
   },
 });
 
 /**
- * Recherche des photos en fonction d’un mot-clé
- * @param {string} query Le terme de recherche
+ * Recherche des photos sur Unsplash selon un mot-clé.
+ * @param {string} query Terme de recherche
  * @param {number} [page=1] Numéro de page
  * @param {number} [per_page=10] Nombre de résultats par page
- * @param {string} [orientation] (optionnel) Orientation de l'image ('landscape', 'portrait', 'squarish')
+ * @param {string|null} [orientation] Orientation de l'image (optionnel)
+ * @returns {Promise<Object>} Données renvoyées par l'API
  */
 async function searchPhotos(
   query,
@@ -36,7 +38,12 @@ async function searchPhotos(
     const response = await unsplashApi.get("/search/photos", { params });
     return response.data;
   } catch (error) {
-    console.error("Erreur dans searchPhotos :", error.message);
+    // Log détaillé de l'erreur pour débogage
+    if (error.response) {
+      console.error("Erreur dans searchPhotos :", error.response.data);
+    } else {
+      console.error("Erreur dans searchPhotos :", error.message);
+    }
     throw error;
   }
 }
