@@ -5,6 +5,8 @@ const connectDB = require("./db");
 const nftRoutes = require("./routes/nftRoutes");
 const userRoutes = require("./routes/userRoutes");
 const articleRoutes = require("./routes/articleRoutes");
+// Dans ton fichier principal (par exemple app.js ou server.js)
+const unsplashRoutes = require("./routes/unsplashRoutes");
 const cron = require("node-cron");
 const { generateScheduledArticles } = require("./services/articleGenerator");
 
@@ -45,6 +47,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/user", userRoutes);
 app.use("/nfts", nftRoutes);
 app.use("/articles", articleRoutes);
+app.use("/unsplash", unsplashRoutes);
 
 app.listen(port, () => {
   console.log(`Serveur en écoute sur http://localhost:${port}`);
