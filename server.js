@@ -11,11 +11,6 @@ const cron = require("node-cron");
 const { generateScheduledArticles } = require("./services/articleGenerator");
 const { updateArtData } = require("./controllers/artController");
 
-// ✅ Vérification de l'import de `artRoutes`
-if (!artRoutes) {
-  throw new Error("🚨 Erreur : `artRoutes` n'est pas défini !");
-}
-
 // ✅ Vérification de `updateArtData`
 if (!updateArtData) {
   console.warn("⚠️ `updateArtData` n'est pas défini dans `artController.js` !");
@@ -34,17 +29,6 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };
-
-// ✅ Planification des mises à jour automatiques
-cron.schedule("0 3 * * *", async () => {
-  console.log("🔄 Mise à jour automatique des artistes et musées...");
-  try {
-    await updateArtData();
-    console.log("✅ Mise à jour réussie !");
-  } catch (error) {
-    console.error("❌ Erreur lors de la mise à jour :", error.message);
-  }
-});
 
 // Planification quotidienne à 08h00 (modifier si besoin)
 cron.schedule("0 8 * * *", async () => {
